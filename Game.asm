@@ -16,9 +16,10 @@
 	tb_nhap_sai:.asciiz "\nBan da nhap sai vui long nhap lai \n"
 	entersign:.asciiz "\n"
 	chedo:.byte 0
-	kitucuadapan:.byte 	
+	kitunhapvao:.byte 0
 	demsolandoansai:.word 0	
 	diem: .word 0
+	tb_nhap_ki_tu:.asciiz "\nMoi ban nhap vao mot ki tu: "
 	doansailan1:.asciiz "\n_____________\n|/         | \n|\n|\n|\n|\n|\n|\n|\n|\n|"
 	doansailan2:.asciiz "\n_____________\n|/         | \n|          O\n|\n|\n|\n|\n|\n|\n|\n|"
 	doansailan3:.asciiz "\n_____________\n|/         | \n|          O\n|          |\n|\n|\n|\n|\n|\n|\n|"
@@ -29,7 +30,7 @@
 	#Array
 	buffer:.space 1000
 	buffer1:.space 5000
-
+	
 
 
 	encodedanswer:.space 100
@@ -49,7 +50,7 @@
  
 
 .text
-
+############################################
 #Main:
 
 
@@ -70,7 +71,47 @@
 	li $v0,4
 	syscall
 
+	#Kiem tra ki tu nguoi choi nhap vao co tong tai trong dap an 
+	#va thay doi encodedanswer
+	#a0 -> ki tu can kiem tra (byte)
+	#a1 -> word
+	#a2 -> encodedanswer
 
+	#Tra ve 1 neu nguoi choi nhap dung
+	#Tra ve 0 neu nguoi choi nhap sai
+
+	#Xuat tb
+	la $a0,word
+	li $v0,4
+	syscall
+
+	la $a0,tb_nhap_ki_tu
+	li $v0,4
+	syscall
+
+
+	
+	li $v0,12
+	syscall
+	
+	la $a0,kitunhapvao
+	sb $v0,($a0)
+
+	la $a0,kitunhapvao
+	la $a1,word
+	la $a2,encodedanswer
+	jal _KiemTraDapAnVaThayDoiEncodedAnswer
+
+	la $a0,entersign
+	li $v0,4
+	syscall
+
+	
+
+
+	la $a0,encodedanswer
+	li $v0,4
+	syscall
 
 	
 
@@ -1222,4 +1263,90 @@ _TangDem:
 	lw $s0,4($sp)
 	lw $t0,8($sp)
 	addi $sp,$sp,32
+	jr $ra
+
+#Kiem tra ki tu nguoi choi nhap vao co tong tai trong dap an 
+#va thay doi encodedanswer
+	#a0 -> ki tu can kiem tra (byte)
+	#a1 -> word
+	#a2 -> encodedanswer
+
+	#Tra ve 1 neu nguoi choi nhap dung
+	#Tra ve 0 neu nguoi choi nhap sai
+
+_KiemTraDapAnVaThayDoiEncodedAnswer:
+	addi $sp,$sp,-36
+	sw $ra, ($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+	sw $s2,12($sp)
+	sw $t0,16($sp)
+	sw $t1,20($sp)
+	sw $t2,24($sp)
+	sw $t3,28($sp)
+	sw $t4,32($sp)
+	
+
+	move $s0,$a0
+	move $s1,$a1
+	move $s2,$a2
+
+	move $a0,$s1
+	jal _DemSoLuongKiTu
+	#t0-> so luong ki tu	
+	move $t0,$v0
+	#t1-> index
+	li $t1,0
+	#load ki tu nguoi choi nhap vao
+	lb $t4,($s0)
+
+	#D
+	move $a0,$t4
+	li $v0,1
+	syscall
+
+	#flag kiem tra xem nguoi choi co nhap dung hay khong
+	li $t3,0
+	_KiemTraDapAnVaThayDoiEncodedAnswer.Loop:
+		bge $t1,$t0,_KiemTraDapAnVaThayDoiEncodedAnswer.ExitLoop
+
+		lb $t2,($s1)
+
+		beq $t2,$t4,_KiemTraDapAnVaThayDoiEncodedAnswer.ThayDoiEncodedAnswer
+		j _KiemTraDapAnVaThayDoiEncodedAnswer.ContinueLoop
+
+		_KiemTraDapAnVaThayDoiEncodedAnswer.ThayDoiEncodedAnswer:
+			li $t3,1
+			sb $t4,($s2)
+			#De
+			la $a0,tb1
+			li $v0,4
+			syscall
+
+
+		_KiemTraDapAnVaThayDoiEncodedAnswer.ContinueLoop:
+		
+		addi $s1,$s1,1
+		addi $s2,$s2,1
+		addi $t1,$t1,1
+
+
+	j _KiemTraDapAnVaThayDoiEncodedAnswer.Loop
+
+	_KiemTraDapAnVaThayDoiEncodedAnswer.ExitLoop:
+
+
+	move $v0,$t3
+
+	lw $ra, ($sp)
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+	lw $s2,12($sp)
+	lw $t0,16($sp)
+	lw $t1,20($sp)
+	lw $t2,24($sp)
+	lw $t3,28($sp)
+	lw $t4,32($sp)
+	
+	addi $sp,$sp,36
 	jr $ra
