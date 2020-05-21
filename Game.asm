@@ -63,10 +63,10 @@
 
 
 	la $a0,encodedanswer
-	la $a0,word
+	la $a1,word
 	jal _EncodeAnswer
 
-	la $a0,word
+	la $a0,encodedanswer
 	li $v0,4
 	syscall
 
@@ -125,7 +125,7 @@ _InitGame:
 
 		
 	lw $ra,($sp)
-	addi $sp,$sp,-32
+	addi $sp,$sp,32
 	jr $ra
 
 #
@@ -1168,6 +1168,7 @@ _EncodeAnswer:
 	sw $s1,8($sp)
 	sw $t1,12($sp)
 	sw $t2,16($sp)
+	sw $t0,20($sp)
 
 	move $s0,$a0
 	move $s1,$a1
@@ -1185,9 +1186,11 @@ _EncodeAnswer:
 	li $t0,0
 	li $t1,42
 	_EncodeAnswer.Loop:		
-		bge $s0,$t2,_EncodeAnswer.ExitLoop
+		bge $t0,$t2,_EncodeAnswer.ExitLoop
 		sb $t1,($s0)
+		
 		addi $s0,$s0,1
+		addi $t0,$t0,1
 	j _EncodeAnswer.Loop
 
 	_EncodeAnswer.ExitLoop:
@@ -1197,6 +1200,7 @@ _EncodeAnswer:
 	lw $s1,8($sp)
 	lw $t1,12($sp)
 	lw $t2,16($sp)
+	lw $t0,20($sp)
 	addi $sp,$sp,32
 	
 	jr $ra
