@@ -1,24 +1,23 @@
 .data
 	#File de thi
-    filein: .asciiz "dethi.txt"
+    file_in: .asciiz "dethi.txt"
 	#File ke qua sau khi nguoi choi ket thuc game
-	fileout:.asciiz "nguoichoi.txt"
+	file_out:.asciiz "nguoichoi.txt"
 	#*****Khu vuc khai bao thong bao
 	#Thong bao het tu trong de thi
 	tb1:.asciiz "\nHet tu roi"
 	tb2:.asciiz "\nMoi ban nhap vao ten: "
-	tbhettu:.asciiz "\nHet tu trong de thi roi\n "
+	tb_het_tu:.asciiz "\nHet tu trong de thi roi\n "
 	tb_nhap_sai:.asciiz "\nBan da nhap sai vui long nhap lai \n"
 	tb_nhap_ki_tu:.asciiz "\nMoi ban nhap vao mot ki tu: "
 	#*****Ket thuc khu vuc khai bao thong bao
 	#*****String ung voi so lan nguoi choi doan sai
-	doansailan1:.asciiz "\n_____________\n|/         | \n|\n|\n|\n|\n|\n|\n|\n|\n|"
-	doansailan2:.asciiz "\n_____________\n|/         | \n|          O\n|\n|\n|\n|\n|\n|\n|\n|"
-	doansailan3:.asciiz "\n_____________\n|/         | \n|          O\n|          |\n|\n|\n|\n|\n|\n|\n|"
-	doansailan4:.asciiz "\n_____________\n|/         | \n|          O\n|         /|\n|\n|\n|\n|\n|\n|\n|"
-	doansailan5:.asciiz "\n_____________\n|/         | \n|          O\n|         /|\\\n|\n|\n|\n|\n|\n|\n|"
-	doansailan6:.asciiz "\n_____________\n|/         | \n|          O\n|         /|\\\n|         /\n|\n|\n|\n|\n|\n|"
-	doansailan7:.asciiz "\n_____________\n|/         | \n|          O\n|         /|\\\n|         / \\\n|\n|\n|\n|\n|\n|"
+	doan_sai_lan_1:.asciiz "\n_____________\n|/         | \n|\n|\n|\n|\n|\n|\n|\n|\n|"
+	doan_sai_lan_2:.asciiz "\n_____________\n|/         | \n|          O\n|\n|\n|\n|\n|\n|\n|\n|"
+	doan_sai_lan_4:.asciiz "\n_____________\n|/         | \n|          O\n|         /|\n|\n|\n|\n|\n|\n|\n|"
+	doan_sai_lan_5:.asciiz "\n_____________\n|/         | \n|          O\n|         /|\\\n|\n|\n|\n|\n|\n|\n|"
+	doan_sai_lan_6:.asciiz "\n_____________\n|/         | \n|          O\n|         /|\\\n|         /\n|\n|\n|\n|\n|\n|"
+	doan_sai_lan_7:.asciiz "\n_____________\n|/         | \n|          O\n|         /|\\\n|         / \\\n|\n|\n|\n|\n|\n|"
 	#***** KetThuc 	
 	#Khu vuc khai bao string cho **DEBUG**
 	usernamed1: .asciiz "abc"
@@ -37,21 +36,21 @@
 	sotud4:.asciiz "20"
 
 	#Ket thuc
-	asterisksign:.asciiz "*"
-	dashsign:.asciiz "-"
-	entersign:.asciiz "\n"
+	asterisk_sign:.asciiz "*"
+	dash_sign:.asciiz "-"
+	enter_sign:.asciiz "\n"
 	#Che do nguoi choi
 		#1 -> che do 1 ki tu
 		#2 -> che do 1 word
-	chedo:.byte 0
+	che_do:.byte 0
 	#Ki tu nguoi choi nhap vao khi choi che do 1 ki tu
-	kitunhapvao:.byte 0
+	ki_tu_nhap_vao:.byte 0
 	#Bien dem so lan nguoi choi doan sai
-	demsolandoansai:.word 0	
+	dem_so_lan_doan_sai:.word 0	
 	#Luu lai sao diem cua nguoi choi
 	diem: .word 0
 	#Luu lai so tu nguoi choi doan duoc
-	sotudadoan:.word 0
+	so_tu_da_doan:.word 0
 	
 	#******Khu vuc khai bao mang va string
 	#Mang luu du lieu khi doc file dethi.txt
@@ -61,21 +60,17 @@
 	#Bien tam thuc hien noi chuoi
 	buffer_concate_string1:.space 1000
 	buffer_concate_string2:.space 1000
-	encodedanswer:.space 100
+	encoded_answer:.space 100
 	username:.space 50    
 	word: .space 100
-
-	concate1:.space 300
-	concate2:.space 300
-	
-	dapannguoichoi:.space 100	
+	dap_an_nguoi_choi:.space 100	
 	#Mang so nguyen chua index cac tu da radom
 	.align 4
-	TuDaRandom:.space 400
+	ARRTu_Da_Random:.space 400
 	.align 4 
-	MangDiemNguoiChoi: .space 400
+	ARRDiem_Nguoi_Choi: .space 400
 	.align 4 
-	MangIndexNguoiChoi: .space 400
+	ARRIndex_Nguoi_Choi: .space 400
 
 
  
@@ -98,7 +93,7 @@
 	
 #
 	
-	la $a0,fileout
+	la $a0,file_out
 	la $a1,buffer_fout
 	jal _DocFile
 	
@@ -132,9 +127,9 @@ _InitGame:
 	addi $sp,$sp,-32
 	sw $ra,($sp)
 	#Init
-#Doc file de thi vao buffer
+#Doc file de thi vao buffer_fin
 						
-		la $a0,filein
+		la $a0,file_in
 		la $a1,buffer_fin		
 		jal _DocFile		
 #Preconfigure:
@@ -144,7 +139,7 @@ _InitGame:
 
 		move $a1,$v0
 		li $a2,4
-		la $a0,TuDaRandom		
+		la $a0,ARRTu_Da_Random		
 		jal _KhoiTaoMang
 
 		la $a0,username
@@ -157,7 +152,7 @@ _InitGame:
 		li $a2,1
 		jal _KhoiTaoMang
 
-		la $a0,encodedanswer
+		la $a0,encoded_answer
 		li $a1,100
 		li $a2,1
 		jal _KhoiTaoMang
@@ -238,15 +233,15 @@ _GameLoop:
 
 			#May tien hanh cho mot tu trong dethi.txt
 
-			#Ham Chon de tu 1 chuoi de doc tu buffer
-			#Nhan vao dia chi buffer -> $a0
-			#Nhan vao dia chi cua mang TuDaRandom -> $a1
+			#Ham Chon de tu 1 chuoi de doc tu buffer_fin
+			#Nhan vao dia chi buffer_fin -> $a0
+			#Nhan vao dia chi cua mang ARRTu_Da_Random -> $a1
 			#Nhan vao dia chi cua word -> $a2
 
 			#Tra ve 1-> Tim duoc tu trong de thi
 			#Tra ve 0 -> Het tu trong de thi 
 			la $a0,buffer_fin
-			la $a1,TuDaRandom
+			la $a1,ARRTu_Da_Random
 			la $a2,word
 			jal _ChonMotTuDeDocTuBuffer
 
@@ -256,7 +251,7 @@ _GameLoop:
 			j _GameLoop.ContinueLoop1 #Con tu trong dethi
 
 				_GameLoop.HetTuTrongDeThi:
-					la $a0,tbhettu
+					la $a0,tb_het_tu
 					li $v0,4
 					syscall
 					#TODO:
@@ -342,7 +337,7 @@ _CapNhatManHinhOCheDoMotWord:
 
 #TODO:
 #Ve man hinh theo so lan doan sai
-	#a0-> demsolandoansai
+	#a0-> dem_so_lan_doan_sai
 _VeManRaManHinhUngVoSoLanSaiCuaNguoiChoi:
 
 #TODO
@@ -382,9 +377,9 @@ _DemSoLuongKiTu:
 		
 			
     
-#Ham Chon de tu 1 chuoi de doc tu buffer
-	#Nhan vao dia chi buffer -> $a0
-	#Nhan vao dia chi cua mang TuDaRandom -> $a1
+#Ham Chon de tu 1 chuoi de doc tu buffer_fin
+	#Nhan vao dia chi buffer_fin -> $a0
+	#Nhan vao dia chi cua mang ARRTu_Da_Random -> $a1
 	#Nhan vao dia chi cua word -> $a2
 
 	#Tra ve 1-> Tim duoc tu trong de thi
@@ -403,11 +398,11 @@ _ChonMotTuDeDocTuBuffer:
 		
 		
 		
-		#Luu lai dia chi buffer
+		#Luu lai dia chi buffer_fin
 		
 		move $s0,$a0
 		
-		#Luu dia chi cua mang TuDaRandom
+		#Luu dia chi cua mang ARRTu_Da_Random
 		
 		move $s1,$a1
 		
@@ -433,7 +428,7 @@ _ChonMotTuDeDocTuBuffer:
 			#Ket qua random tu thu i = $a0					
 			move $a1,$a0				
 			move $a0,$s1
-			#Nhan vao $a0 ->dia chi mang TuDaRandom,
+			#Nhan vao $a0 ->dia chi mang ARRTu_Da_Random,
 			#$a1-> Vi tri cua tu can kiem tra
 			jal _KiemTraTinhHopLeCuaTuMoi
 			
@@ -498,7 +493,7 @@ _ChonMotTuDeDocTuBuffer:
 	#Neu da duoc chon thi tra ve 0, chua duoc chon tra ve 1
 	#, mang da ghi het -1 
 	
-	#Nhan vao $a0 ->dia chi mang TuDaRandom,
+	#Nhan vao $a0 ->dia chi mang ARRTu_Da_Random,
 	#$a1-> Vi tri cua tu can kiem tra		
 _KiemTraTinhHopLeCuaTuMoi:
 
@@ -619,7 +614,7 @@ _SetGiatriTaiIndex:
 
 
 #Kiem tra xem mang danh da da danh dau het chua
-	#Nhan vao $a0-> dia chi cua mang TuDaRandom
+	#Nhan vao $a0-> dia chi cua mang ARRTu_Da_Random
 	#Tra ve 0 khi mang chua danh dau he
 	#Tra ve 1 khi mang da duoc danh dau het
 
@@ -639,7 +634,7 @@ _KiemTraMangTuDaRandomDaDanhDauHetChua:
 
 	la $a0,buffer_fin
 	jal _SoLuongTuTrongDeThi
-	#t0 -> So luong tu trong de thi tuong ung voi so luong phan tu trong mang TuDaRandom
+	#t0 -> So luong tu trong de thi tuong ung voi so luong phan tu trong mang ARRTu_Da_Random
 	move $t0,$v0
 	#$t0-> index
 	li $t1,0
@@ -677,7 +672,7 @@ _KiemTraMangTuDaRandomDaDanhDauHetChua:
 
 
 #Lay ra so luong tu trong de thi
-#a0-> dia chi buffer
+#a0-> dia chi buffer_fin
 	#Tested
 _SoLuongTuTrongDeThi:
 	addi $sp,$sp,-32
@@ -687,7 +682,7 @@ _SoLuongTuTrongDeThi:
 	sw $t1,12($sp)
 	sw $t2,16($sp)
 	
-	#Luu dia chi buffer
+	#Luu dia chi buffer_fin
 	move $s0,$a0
 	
 	#lb $t0,($s0)
@@ -730,8 +725,8 @@ _SoLuongTuTrongDeThi:
 
 
 
-#Khoi tao gia tri mang TuDaRandom
-	#Nhan vao $a0 dia chi mang TuDaRandom
+#Khoi tao gia tri mang ARRTu_Da_Random
+	#Nhan vao $a0 dia chi mang ARRTu_Da_Random
 	#a1->soluong luong phan tu 
 	#a2-> step
 _KhoiTaoMang:
@@ -788,7 +783,7 @@ _KhoiTaoMang:
 		
 
 #Ham doc file
-	#a0-> dia chi ten file , a1-> dia chi buffer
+	#a0-> dia chi ten file , a1-> dia chi buffer_fin
 _DocFile:
         addi $sp,$sp,-32
         sw $ra,($sp)
@@ -796,7 +791,7 @@ _DocFile:
         sw $s1,8($sp)
     	sw $t0,12($sp)
 	
-	    #s0: dia chi file s1 - dia chi buffer
+	    #s0: dia chi file s1 - dia chi buffer_fin
         move $s0,$a0
         move $s1,$a1
 	
@@ -830,7 +825,7 @@ _DocFile:
         jr $ra
 
 #Doc mot tu vao word 
-	#a0 -> dia chi buffer
+	#a0 -> dia chi buffer_fin
 	#a1 -> Tu tai vi tri 
 	#a2 -> Dia chi word
 _DocMotTuVaoWord:
@@ -848,7 +843,7 @@ _DocMotTuVaoWord:
 	move $s1,$a1
 	move $s2,$a2
 	
-	#Dia chi buffer
+	#Dia chi buffer_fin
 	move $t0,$s0
 	
 	#count '*' -> 42 ascii code		
@@ -896,7 +891,7 @@ _DocMotTuVaoWord:
 	jr $ra
 
 	 
-#TODO:
+#DONE
 #Ham ghi ket qua xuong file
 	#a0-> dia chi username
 	#a1-> diem nguoi choi 
@@ -920,14 +915,14 @@ _GhiKetQuaRaFile:
 	#result -> username-
 	la $a0,buffer_concate_string1
 	move $a1,$s0
-	la $a2,dashsign
+	la $a2,dash_sign
 	jal _NoiChuoi
 	#D
 	la $a0,buffer_concate_string1
 	li $v0,4
 	syscall
 	
-	la $a0,entersign
+	la $a0,enter_sign
 	li $v0,4
 	syscall
 
@@ -941,14 +936,14 @@ _GhiKetQuaRaFile:
 	li $v0,4
 	syscall
 	
-	la $a0,entersign
+	la $a0,enter_sign
 	li $v0,4
 	syscall
 
 	#result-> username-diem-
 	la $a0,buffer_concate_string1
 	la $a1,buffer_concate_string2
-	la $a2,dashsign
+	la $a2,dash_sign
 	jal _NoiChuoi
 
 	#D
@@ -956,10 +951,10 @@ _GhiKetQuaRaFile:
 	li $v0,4
 	syscall
 	
-	la $a0,entersign
+	la $a0,enter_sign
 	li $v0,4
 	syscall
-	#result-> username-diem-sotudadoan
+	#result-> username-diem-so_tu_da_doan
 	la $a0,buffer_concate_string2
 	la $a1,buffer_concate_string1
 	move $a2,$s2
@@ -970,13 +965,13 @@ _GhiKetQuaRaFile:
 	li $v0,4
 	syscall
 	
-	la $a0,entersign
+	la $a0,enter_sign
 	li $v0,4
 	syscall
-	#result-> username-diem-sotudadoan*
+	#result-> username-diem-so_tu_da_doan*
 	la $a0,buffer_concate_string1
 	la $a1,buffer_concate_string2
-	la $a2,asterisksign
+	la $a2,asterisk_sign
 	jal _NoiChuoi
 
 	#D
@@ -984,7 +979,7 @@ _GhiKetQuaRaFile:
 	li $v0,4
 	syscall
 	
-	la $a0,entersign
+	la $a0,enter_sign
 	li $v0,4
 	syscall
 
@@ -993,7 +988,7 @@ _GhiKetQuaRaFile:
 
 
 	li   $v0, 13       # system call for open file
-  	la   $a0, fileout     # output file name
+  	la   $a0, file_out     # output file name
   	li   $a1, 9        # Open for writing (flags are 0: read, 1: write 9:write and append to existed file)
   	li   $a2, 0        # mode is ignored
   	syscall            # open a file (file descriptor returned in $v0)
@@ -1008,7 +1003,7 @@ _GhiKetQuaRaFile:
 	move $a0,$t1
 	syscall
 
-	la $a0,entersign
+	la $a0,enter_sign
 	li $v0,4
 	syscall
 	
@@ -1065,7 +1060,7 @@ _XuatMang:
 		li $v0,1
 		syscall
 
-		la $a0,entersign
+		la $a0,enter_sign
 		li $v0,4
 		syscall		
 
@@ -1082,8 +1077,8 @@ _XuatMang:
 	addi $sp,$sp,32
 
 	jr $ra
-#Lay ra so luong nguoi choi tu buffer
-#a0 -> dia chi buffer
+#Lay ra so luong nguoi choi tu buffer_fin
+#a0 -> dia chi buffer_fin
 _DemSoLuongNguoiChoi:
 	addi $sp,$sp,-32
 	sw $ra,($sp)
@@ -1121,8 +1116,8 @@ _DemSoLuongNguoiChoi:
 	jr $ra
 
 #Luu du lieu tu buffer1 vao 2 mang 
-#MangIndexNguoiChoi, MangDiemNguoiChoi
-	#a0 -> dia chi buffer
+#ARRIndex_Nguoi_Choi, ARRDiem_Nguoi_Choi
+	#a0 -> dia chi buffer_fin
 	#a1 -> Mang diem
 	#a2 -> Mang index
 _LayDuLieuNguoiChoiLuuVaoMang:
@@ -1217,8 +1212,8 @@ _LayDuLieuNguoiChoiLuuVaoMang:
 
 	jr $ra
 
-#Sap xep MangDiemNguoiChoi vaf MangIndex
-#a0 - Dia chi MangDiemNguoiChoi
+#Sap xep ARRDiem_Nguoi_Choi vaf MangIndex
+#a0 - Dia chi ARRDiem_Nguoi_Choi
 #a1 - Dia chi mang index
 #a2 - So luong phan tu trong mang
 _SapXepGiamDan:
@@ -1351,7 +1346,7 @@ _SapXepGiamDan:
 	addi $sp,$sp,40
 	jr $ra
 #Thuc hien encode word
-	#a0,encodedanswer
+	#a0,encoded_answer
 	#a1,word	
 _EncodeAnswer:
 	addi $sp,$sp,-32
@@ -1417,10 +1412,10 @@ _TangDem:
 	jr $ra
 
 #Kiem tra ki tu nguoi choi nhap vao co tong tai trong dap an 
-#va thay doi encodedanswer
+#va thay doi encoded_answer
 	#a0 -> ki tu can kiem tra (byte)
 	#a1 -> word
-	#a2 -> encodedanswer
+	#a2 -> encoded_answer
 
 	#Tra ve 1 neu nguoi choi nhap dung
 	#Tra ve 0 neu nguoi choi nhap sai
@@ -1503,7 +1498,7 @@ _KiemTraDapAnVaThayDoiEncodedAnswer:
 	jr $ra
 
 #Thuc hien noi 2 chuoi lai voi nhau
-	#a0-> buffer (ket qua sau khi noi chuoi)
+	#a0-> buffer_fin (ket qua sau khi noi chuoi)
 	#a1-> dia chi chuoi 1
 	#a2-> dia chi chuoi 2
 
@@ -1527,13 +1522,13 @@ _NoiChuoi:
 	move $s1,$a1
 	move $s2,$a2
 
-	#Khoi tao buffer
+	#Khoi tao buffer_fin
 	#move $a0,$s0
 	#li $a1,1000
 	#li $a2,1
 	#jal _KhoiTaoMang
 
-	##index chuoi buffer
+	##index chuoi buffer_fin
 
 	_NoiChuoi.Loop1:
 		lb $t3,($s1) 
