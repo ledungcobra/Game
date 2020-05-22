@@ -1,10 +1,10 @@
 .data
-	#File de thi
+		#File de thi
     file_in: .asciiz "dethi.txt"
-	#File ke qua sau khi nguoi choi ket thuc game
+		#File ke qua sau khi nguoi choi ket thuc game
 	file_out:.asciiz "nguoichoi.txt"
 	#*****Khu vuc khai bao thong bao
-	#Thong bao het tu trong de thi
+		#Thong bao het tu trong de thi
 	tb1:.asciiz "\nHet tu roi"
 	tb2:.asciiz "\nMoi ban nhap vao ten: "
 	tb_het_tu:.asciiz "\nHet tu trong de thi roi\n "
@@ -35,36 +35,38 @@
 	sotud3:.asciiz "10"
 	sotud4:.asciiz "20"
 
-	#Ket thuc
+	#Ket thuc *DEBUG*
 	asterisk_sign:.asciiz "*"
 	dash_sign:.asciiz "-"
 	enter_sign:.asciiz "\n"
-	#Che do nguoi choi
-		#1 -> che do 1 ki tu
-		#2 -> che do 1 word
+		#Che do nguoi choi
+			#1 -> che do 1 ki tu
+			#2 -> che do 1 word
 	che_do:.byte 0
-	#Ki tu nguoi choi nhap vao khi choi che do 1 ki tu
+		#Ki tu nguoi choi nhap vao khi choi che do 1 ki tu
 	ki_tu_nhap_vao:.byte 0
-	#Bien dem so lan nguoi choi doan sai
+		#Bien dem so lan nguoi choi doan sai
 	dem_so_lan_doan_sai:.word 0	
-	#Luu lai sao diem cua nguoi choi
-	diem: .word 0
-	#Luu lai so tu nguoi choi doan duoc
-	so_tu_da_doan:.word 0
+		#Luu lai sao diem cua nguoi choi
+	diem: .word 99999
+		#Luu lai so tu nguoi choi doan duoc
+	so_tu_da_doan:.word 9999
 	
 	#******Khu vuc khai bao mang va string
-	#Mang luu du lieu khi doc file dethi.txt
+		#Mang luu du lieu khi doc file dethi.txt
 	buffer_fin:.space 1000
-	#Mang luu du lieu nguoi choi doc tu file nguoichoi.txt
+		#Mang luu du lieu nguoi choi doc tu file nguoichoi.txt
 	buffer_fout:.space 5000
-	#Bien tam thuc hien noi chuoi
+		#Bien tam thuc hien noi chuoi
 	buffer_concate_string1:.space 1000
 	buffer_concate_string2:.space 1000
+	
 	encoded_answer:.space 100
 	username:.space 50    
 	word: .space 100
 	dap_an_nguoi_choi:.space 100	
-	#Mang so nguyen chua index cac tu da radom
+		#Mang so nguyen chua index cac tu da radom
+	temp:.space 30
 	.align 4
 	ARRTu_Da_Random:.space 400
 	.align 4 
@@ -93,17 +95,24 @@
 	
 #
 	
-	la $a0,file_out
-	la $a1,buffer_fout
-	jal _DocFile
-	
-	la $a0,buffer_fout
-	jal _DemSoLuongNguoiChoi
-	
-	move $a0,$v0
-	li $v0,1
+	#la $a0,file_out
+	#la $a1,buffer_fout
+	#jal _DocFile
+	#
+	#la $a0,buffer_fout
+	#jal _DemSoLuongNguoiChoi
+	#
+	#move $a0,$v0
+	#li $v0,1
+	#syscall
+	la $a0,username
+	li $a1,50
+	li $v0,8
 	syscall
-
+	la $a0,username
+	la $a1,diem
+	la $a2,so_tu_da_doan
+	jal _GhiKetQuaRaFile
 	
 
 		
@@ -917,28 +926,18 @@ _GhiKetQuaRaFile:
 	move $a1,$s0
 	la $a2,dash_sign
 	jal _NoiChuoi
-	#D
-	la $a0,buffer_concate_string1
-	li $v0,4
-	syscall
 	
-	la $a0,enter_sign
-	li $v0,4
-	syscall
 
 	#result -> username-diem
+	move $a0,$s1
+	la $a1,temp
+	jal _ConvertIntToString
 	la $a0,buffer_concate_string2
 	la $a1,buffer_concate_string1
-	move $a2,$s1
+	la $a2,temp
 	jal _NoiChuoi
-	#D
-	la $a0,buffer_concate_string2
-	li $v0,4
-	syscall
 	
-	la $a0,enter_sign
-	li $v0,4
-	syscall
+	
 
 	#result-> username-diem-
 	la $a0,buffer_concate_string1
@@ -955,9 +954,13 @@ _GhiKetQuaRaFile:
 	li $v0,4
 	syscall
 	#result-> username-diem-so_tu_da_doan
+
+	move $a0,$s2
+	la $a1,temp
+	jal _ConvertIntToString
 	la $a0,buffer_concate_string2
 	la $a1,buffer_concate_string1
-	move $a2,$s2
+	la $a2,temp
 	jal _NoiChuoi
 
 	#D
@@ -1569,3 +1572,78 @@ _NoiChuoi:
 	addi $sp,$sp,32
 	jr $ra
 
+#Chuyen doi so nguyen sang string
+	#a0 -> dia chi cua mot so nguyen
+	#a1 -> dia chi chuoi temp (ket qua)
+_ConvertIntToString:
+
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+	sw $s2,12($sp)
+	sw $t0,16($sp)
+	sw $t1,20($sp)
+	sw $t2,24($sp)
+	sw $t3,28($sp)
+
+	lw $s0,($a0)
+	move $s1,$a1
+	#Backup dia chi phan tu dau tien
+	move $s2,$a1
+	
+	li $t0,10
+	
+	_ConvertIntToString.DoWhileLoop:
+		div $s0,$t0
+		#t1-> luu thuong
+		#t2 -> luu du
+		mflo $t1
+		mfhi $t2
+		addi $t2,$t2,48
+		move $s0,$t1
+		sb $t2,($s1)
+		
+		
+		addi $s1,$s1,1
+	bnez $t1,_ConvertIntToString.DoWhileLoop 
+	#Tien hanh dao nguoc chuoi
+		sb $0,($s1)
+		addi $s1,$s1,-1
+
+		move $a0,$s2
+		jal _DemSoLuongKiTu
+		#So luong ki tu
+		move $t0,$v0
+
+		srl $t0,$t0,1
+		
+		li $t1,0
+
+	_ConvertIntToString.Loop:		
+		beq $t1,$t0,_ConvertIntToString.ExitLoop
+
+
+		lb $t2,($s2)
+		lb $t3,($s1)
+
+		sb $t2,($s1)
+		sb $t3,($s2)
+
+		addi $s2,$s2,1
+		addi $s1,$s1,-1
+		addi $t1,$t1,1
+	
+	j _ConvertIntToString.Loop
+	_ConvertIntToString.ExitLoop:
+	
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+	lw $s2,12($sp)
+	lw $t0,16($sp)
+	lw $t1,20($sp)
+	lw $t2,24($sp)
+	lw $t3,28($sp)
+	addi $sp,$sp,32
+	jr $ra
