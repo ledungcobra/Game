@@ -1,25 +1,17 @@
 .data
+	#File de thi
     filein: .asciiz "dethi.txt"
+	#File ke qua sau khi nguoi choi ket thuc game
 	fileout:.asciiz "nguoichoi.txt"
+	#*****Khu vuc khai bao thong bao
+	#Thong bao het tu trong de thi
 	tb1:.asciiz "\nHet tu roi"
-	tb2:.asciiz "\nMang: \n"
-	tb3:.asciiz "\nMoi ban nhap vao ten: "
-	debug0: .asciiz "\nMang diem nguoi choi : \n"
-	debug1:.asciiz "\nMang index: \n"
-	debug2:.asciiz "\nMang sau khi sap xep: \n"
-	debug3:.asciiz "\nPhan max tu "
-	debug4:.asciiz " n-1 la: "
-	swap: .asciiz "\nThuc hien hoan doi giua "
-	va: .asciiz " va "
-	tbindex:.asciiz "\nMang index sau khi swap\n"
+	tb2:.asciiz "\nMoi ban nhap vao ten: "
 	tbhettu:.asciiz "\nHet tu trong de thi roi\n "
 	tb_nhap_sai:.asciiz "\nBan da nhap sai vui long nhap lai \n"
-	entersign:.asciiz "\n"
-	chedo:.byte 0
-	kitunhapvao:.byte 0
-	demsolandoansai:.word 0	
-	diem: .word 0
 	tb_nhap_ki_tu:.asciiz "\nMoi ban nhap vao mot ki tu: "
+	#*****Ket thuc khu vuc khai bao thong bao
+	#*****String ung voi so lan nguoi choi doan sai
 	doansailan1:.asciiz "\n_____________\n|/         | \n|\n|\n|\n|\n|\n|\n|\n|\n|"
 	doansailan2:.asciiz "\n_____________\n|/         | \n|          O\n|\n|\n|\n|\n|\n|\n|\n|"
 	doansailan3:.asciiz "\n_____________\n|/         | \n|          O\n|          |\n|\n|\n|\n|\n|\n|\n|"
@@ -27,10 +19,48 @@
 	doansailan5:.asciiz "\n_____________\n|/         | \n|          O\n|         /|\\\n|\n|\n|\n|\n|\n|\n|"
 	doansailan6:.asciiz "\n_____________\n|/         | \n|          O\n|         /|\\\n|         /\n|\n|\n|\n|\n|\n|"
 	doansailan7:.asciiz "\n_____________\n|/         | \n|          O\n|         /|\\\n|         / \\\n|\n|\n|\n|\n|\n|"
-	#Array
-	buffer:.space 1000
-	buffer1:.space 5000
-	buffer_concate_string:.space 200
+	#***** KetThuc 	
+	#Khu vuc khai bao string cho **DEBUG**
+	usernamed1: .asciiz "abc"
+	usernamed2:.asciiz "xyz"
+	usernamed3: .asciiz "abc"
+	usernamed4:.asciiz "xyz"
+	
+	diemd1:.asciiz "100"
+	diemd2:.asciiz "300"
+	diemd3:.asciiz "100"
+	diemd4:.asciiz "300"
+	
+	sotud1:.asciiz "10"
+	sotud2:.asciiz "20"
+	sotud3:.asciiz "10"
+	sotud4:.asciiz "20"
+
+	#Ket thuc
+	asterisksign:.asciiz "*"
+	dashsign:.asciiz "-"
+	entersign:.asciiz "\n"
+	#Che do nguoi choi
+		#1 -> che do 1 ki tu
+		#2 -> che do 1 word
+	chedo:.byte 0
+	#Ki tu nguoi choi nhap vao khi choi che do 1 ki tu
+	kitunhapvao:.byte 0
+	#Bien dem so lan nguoi choi doan sai
+	demsolandoansai:.word 0	
+	#Luu lai sao diem cua nguoi choi
+	diem: .word 0
+	#Luu lai so tu nguoi choi doan duoc
+	sotudadoan:.word 0
+	
+	#******Khu vuc khai bao mang va string
+	#Mang luu du lieu khi doc file dethi.txt
+	buffer_fin:.space 1000
+	#Mang luu du lieu nguoi choi doc tu file nguoichoi.txt
+	buffer_fout:.space 5000
+	#Bien tam thuc hien noi chuoi
+	buffer_concate_string1:.space 1000
+	buffer_concate_string2:.space 1000
 	encodedanswer:.space 100
 	username:.space 50    
 	word: .space 100
@@ -60,83 +90,26 @@
 #############################################################################
 #Main:
 
-
-
-	#jal _InitGame
+	#Ham ghi ket qua xuong file
+	#a0-> dia chi username
+	#a1-> diem nguoi choi 
+	#a2-> so luong tu da doan duoc
+	
+	
 #
-	#la $a0,buffer
-	#la $a1,TuDaRandom
-	#la $a2,word
-	#jal _ChonMotTuDeDocTuBuffer
-#
-#
-	#la $a0,encodedanswer
-	#la $a1,word
-	#jal _EncodeAnswer
-#
-	#la $a0,encodedanswer
-	#li $v0,4
-	#syscall
-
-	#Kiem tra ki tu nguoi choi nhap vao co tong tai trong dap an 
-	#va thay doi encodedanswer
-	#a0 -> ki tu can kiem tra (byte)
-	#a1 -> word
-	#a2 -> encodedanswer
-
-	#Tra ve 1 neu nguoi choi nhap dung
-	#Tra ve 0 neu nguoi choi nhap sai
-
-	#Xuat tb
-	#la $a0,word
-	#li $v0,4
-	#syscall
-#
-	#la $a0,tb_nhap_ki_tu
-	#li $v0,4
-	#syscall
-#
-#
-	#
-	#li $v0,12
-	#syscall
-	#
-	#la $a0,kitunhapvao
-	#sb $v0,($a0)
-#
-	#la $a0,kitunhapvao
-	#la $a1,word
-	#la $a2,encodedanswer
-	#jal _KiemTraDapAnVaThayDoiEncodedAnswer
-#
-	#la $a0,entersign
-	#li $v0,4
-	#syscall
-#
-	#
-#
-#
-	#la $a0,encodedanswer
-	#li $v0,4
-	#syscall	
-	la $a0,concate1
-	li $a1,300
-	li $v0,8
+	
+	la $a0,fileout
+	la $a1,buffer_fout
+	jal _DocFile
+	
+	la $a0,buffer_fout
+	jal _DemSoLuongNguoiChoi
+	
+	move $a0,$v0
+	li $v0,1
 	syscall
 
-	la $a0,concate2
-	li $a1,300
-	li $v0,8
-	syscall
-
-	la $a0,buffer_concate_string
-	la $a1,concate1
-	la $a2,concate2	
-	jal _NoiChuoi
-
-	la $a0,buffer_concate_string
-	li $v0,4
-	syscall
+	
 
 		
 
@@ -162,11 +135,11 @@ _InitGame:
 #Doc file de thi vao buffer
 						
 		la $a0,filein
-		la $a1,buffer		
+		la $a1,buffer_fin		
 		jal _DocFile		
 #Preconfigure:
 
-		la $a0,buffer
+		la $a0,buffer_fin
 		jal _SoLuongTuTrongDeThi
 
 		move $a1,$v0
@@ -208,7 +181,7 @@ _DangNhapGame:
 	#luu lai tham so
 	move $s0,$a0
 
-	la $a0,tb3
+	la $a0,tb2
 	li $v0,4
 	syscall
 
@@ -272,7 +245,7 @@ _GameLoop:
 
 			#Tra ve 1-> Tim duoc tu trong de thi
 			#Tra ve 0 -> Het tu trong de thi 
-			la $a0,buffer
+			la $a0,buffer_fin
 			la $a1,TuDaRandom
 			la $a2,word
 			jal _ChonMotTuDeDocTuBuffer
@@ -354,6 +327,12 @@ _YeuCauNguoiChoiLuaChonChoiTiepHayThoat:
 
 #TODO:
 	#Cap nhat trang thai nguoi choi
+	#Diem hien tai la bao nhieu 
+	#So tu da doan duoc	
+	#So lan sai con lai doi voi che do 1 ki tu
+_CapNhatTrangThaiNguoiChoi:
+
+#TODO:
     #Cap nhat man hinh o che do 1 ki tu
 _CapNhatManHinhOCheDoMotKiTu:
 
@@ -379,8 +358,7 @@ _DemSoLuongKiTu:
 		sw $t1,8($sp)
 		sw $t0,12($sp)
 		
-		move $s0,$a0
-		
+		move $s0,$a0		
 		li $t1,0
 		
 		_DemSoLuongKiTu.Loop:			
@@ -439,7 +417,7 @@ _ChonMotTuDeDocTuBuffer:
 		
 		#s3 so luong tu trong de thi
 
-		la $a0,buffer
+		la $a0,buffer_fin
 		jal _SoLuongTuTrongDeThi
 		move $s3,$v0		
 		
@@ -659,7 +637,7 @@ _KiemTraMangTuDaRandomDaDanhDauHetChua:
 
 	#So luong tu trong de thi
 
-	la $a0,buffer
+	la $a0,buffer_fin
 	jal _SoLuongTuTrongDeThi
 	#t0 -> So luong tu trong de thi tuong ung voi so luong phan tu trong mang TuDaRandom
 	move $t0,$v0
@@ -834,11 +812,15 @@ _DocFile:
 
         #Goi lenh doc file
         li $v0,14
-
     	move $a0,$t0
         move $a1,$s1
         li $a2,1000   
     	syscall
+
+		#Dong file
+		move $a0,$t0
+		li $v0,16
+		syscall
 
         lw $ra,($sp)
         lw $s0,4($sp)
@@ -919,9 +901,138 @@ _DocMotTuVaoWord:
 	#a0-> dia chi username
 	#a1-> diem nguoi choi 
 	#a2-> so luong tu da doan duoc
-	#a3-> dia chi ten fileout
 _GhiKetQuaRaFile:
 
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $t0,8($sp)
+	sw $t1,12($sp)
+	sw $s1,16($sp)
+	sw $s2,20($sp)
+	sw $s3,24($sp)
+
+	move $s0,$a0
+	move $s1,$a1
+	move $s2,$a2
+
+	#Thuc hien noi tu 
+	#result -> username-
+	la $a0,buffer_concate_string1
+	move $a1,$s0
+	la $a2,dashsign
+	jal _NoiChuoi
+	#D
+	la $a0,buffer_concate_string1
+	li $v0,4
+	syscall
+	
+	la $a0,entersign
+	li $v0,4
+	syscall
+
+	#result -> username-diem
+	la $a0,buffer_concate_string2
+	la $a1,buffer_concate_string1
+	move $a2,$s1
+	jal _NoiChuoi
+	#D
+	la $a0,buffer_concate_string2
+	li $v0,4
+	syscall
+	
+	la $a0,entersign
+	li $v0,4
+	syscall
+
+	#result-> username-diem-
+	la $a0,buffer_concate_string1
+	la $a1,buffer_concate_string2
+	la $a2,dashsign
+	jal _NoiChuoi
+
+	#D
+	la $a0,buffer_concate_string1
+	li $v0,4
+	syscall
+	
+	la $a0,entersign
+	li $v0,4
+	syscall
+	#result-> username-diem-sotudadoan
+	la $a0,buffer_concate_string2
+	la $a1,buffer_concate_string1
+	move $a2,$s2
+	jal _NoiChuoi
+
+	#D
+	la $a0,buffer_concate_string2
+	li $v0,4
+	syscall
+	
+	la $a0,entersign
+	li $v0,4
+	syscall
+	#result-> username-diem-sotudadoan*
+	la $a0,buffer_concate_string1
+	la $a1,buffer_concate_string2
+	la $a2,asterisksign
+	jal _NoiChuoi
+
+	#D
+	la $a0,buffer_concate_string1
+	li $v0,4
+	syscall
+	
+	la $a0,entersign
+	li $v0,4
+	syscall
+
+
+	
+
+
+	li   $v0, 13       # system call for open file
+  	la   $a0, fileout     # output file name
+  	li   $a1, 9        # Open for writing (flags are 0: read, 1: write 9:write and append to existed file)
+  	li   $a2, 0        # mode is ignored
+  	syscall            # open a file (file descriptor returned in $v0)
+	#Mo file
+
+	move $t0,$v0
+	la $a0,buffer_concate_string1
+	jal _DemSoLuongKiTu
+	move $t1,$v0
+	
+	li $v0,1
+	move $a0,$t1
+	syscall
+
+	la $a0,entersign
+	li $v0,4
+	syscall
+	
+	move $a0,$t0
+	li $v0,15
+	la $a1,buffer_concate_string1
+	move $a2,$t1
+	syscall
+
+
+	#close file
+	li $v0,16
+	move $a0,$t0
+	syscall
+
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $t0,8($sp)
+	lw $t1,12($sp)
+	lw $s1,16($sp)
+	lw $s2,20($sp)
+	lw $s3,24($sp)
+	addi $sp,$sp,32
+	jr $ra
 
 #Ham xu li khi het luot choi -> Ket thuc khi nguoi cho chon choi tiep thi khong can nhap lai ten
 #Ham xuat mang
@@ -998,11 +1109,6 @@ _DemSoLuongNguoiChoi:
 		j _DemSoLuongNguoiChoi.ContinueLoop
 	
 	_DemSoLuongNguoiChoi.ExitLoop:
-
-		bne $t1,$0,_DemSoLuongNguoiChoi.TangSoLuong
-		j _DemSoLuongNguoiChoi.Restore
-		_DemSoLuongNguoiChoi.TangSoLuong:
-			addi $t1,$t1,1
 	
 	_DemSoLuongNguoiChoi.Restore:
 	move $v0,$t1
@@ -1397,11 +1503,11 @@ _KiemTraDapAnVaThayDoiEncodedAnswer:
 	jr $ra
 
 #Thuc hien noi 2 chuoi lai voi nhau
-#a0-> buffer (ket qua sau khi noi chuoi)
-#a1-> dia chi chuoi 1
-#a2-> dia chi chuoi 2
+	#a0-> buffer (ket qua sau khi noi chuoi)
+	#a1-> dia chi chuoi 1
+	#a2-> dia chi chuoi 2
 
-#ket qua buff = a1 + a2 
+	#ket qua buff = a1 + a2 
 _NoiChuoi:
 	addi $sp,$sp,-32
 	sw $ra,($sp)
@@ -1422,10 +1528,10 @@ _NoiChuoi:
 	move $s2,$a2
 
 	#Khoi tao buffer
-	move $a0,$s0
-	li $a1,200
-	li $a2,1
-	jal _KhoiTaoMang
+	#move $a0,$s0
+	#li $a1,1000
+	#li $a2,1
+	#jal _KhoiTaoMang
 
 	##index chuoi buffer
 
@@ -1455,6 +1561,7 @@ _NoiChuoi:
 	j _NoiChuoi.Loop2
 	
 	_NoiChuoi.ExitLoop2:
+	sb $0,($s0)
 	
 	lw $ra,($sp)
 	lw $s0,4($sp)
@@ -1466,3 +1573,4 @@ _NoiChuoi:
 	lw $t3,28($sp)
 	addi $sp,$sp,32
 	jr $ra
+
