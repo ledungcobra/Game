@@ -194,7 +194,7 @@ _DangNhapGame:
 	li $a1,50
 	syscall
 
-	#TODO:
+	#TODO: HY
 	#Kiem tra xem nguoi choi nhap hop le hay khong
 	#username hop le bao gom 0-9 A-Z a-z
 	#Neu nguoi choi nhap khong hop le xuat thong bao yeu cau nguoi choi nhap lai
@@ -216,7 +216,7 @@ _GameLoop:
 	addi $sp,$sp,-32
 	sw $ra,($sp)
 	sw $t0,4($sp)
-	#TODO:
+	#TODO: KHUONG
 	#Thong bao chao mung den game
 
 	_GameLoop.Loop:
@@ -298,7 +298,7 @@ _GameLoop:
 	addi $sp,$sp,32
 	jr $ra
 
-#TODO:
+#TODO: KHUONG
 #Xuat thong bao yeu cau nguoi choi nhap vao lua chon
 #Chon 1-> Choi che do 1 tu
 #Chon 2-> Choi che do doan dap an (whole word)
@@ -308,18 +308,18 @@ _GameLoop:
 	#Tra ra lua chon cua nguoi choi -> v0
 _YeuCauNguoiChoiChonCheDoChoi:
 
-#TODO:
+#TODO:KHOA
 #Che do doan 1 ki tu
 _CheDoDoanMotKiTu:
 
-#TODO:
+#TODO: HY
 #Che do doan 1 chu
 _CheDoDoanMotWord:
-#TODO:
+#TODO: KHOA
 #Ket thuc tro choi:
 _XuatKetQuaTop10:
 
-#TODO:
+#TODO:HY
 #Yeu cau nguoi choi chon choi tiep hay thoat tro choi 
 #Xuat thong bao hoi nguoi choi co muon tiep tuc choi tiep hay khong
 #1.Choi tiep tuc 
@@ -329,7 +329,7 @@ _XuatKetQuaTop10:
 _YeuCauNguoiChoiLuaChonChoiTiepHayThoat:
 
 
-#TODO:
+#TODO:KHOA
 	#Cap nhat trang thai nguoi choi
 	#Diem hien tai la bao nhieu 
 	#So tu da doan duoc	
