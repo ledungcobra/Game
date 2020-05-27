@@ -7,9 +7,11 @@
 		#Thong bao het tu trong de thi
 	tb1:.asciiz "\nHet tu roi"
 	tb2:.asciiz "\nMoi ban nhap vao ten: "
+	tb_tiep_tuc_choi:.asciiz "\nBan co muon choi tiep khong?\n1.Choi tiep\n2.Ket thuc tro choi\n"
 	tb_het_tu:.asciiz "\nHet tu trong de thi roi\n "
 	tb_nhap_sai:.asciiz "\nBan da nhap sai vui long nhap lai \n"
-	tb_nhap_ki_tu:.asciiz "\nMoi ban nhap vao mot ki tu: "
+	tb_nhap_mot_tu:.asciiz "\nMoi ban nhap tu khoa : "
+	tb_nhap_ki_tu:.asciiz "\nMoi ban nhap vao mot ki tu : "
 	#*****Ket thuc khu vuc khai bao thong bao
 	#*****String ung voi so lan nguoi choi doan sai
 	doan_sai_lan_1:.asciiz "\n_____________\n|/         | \n|\n|\n|\n|\n|\n|\n|\n|\n|"
@@ -165,10 +167,9 @@ _InitGame:
 		li $a1,100
 		li $a2,1
 		jal _KhoiTaoMang
-
 		
 
-		
+
 	lw $ra,($sp)
 	addi $sp,$sp,32
 	jr $ra
@@ -185,29 +186,53 @@ _DangNhapGame:
 	#luu lai tham so
 	move $s0,$a0
 
+#Xuat tb yeu cau nhap ten nguoi choi
 	la $a0,tb2
 	li $v0,4
 	syscall
 
+#Nhap ten nguoi choi
 	li $v0,8
 	move $a0,$s0
 	li $a1,50
 	syscall
 
-	#TODO: HY
-	#Kiem tra xem nguoi choi nhap hop le hay khong
-	#username hop le bao gom 0-9 A-Z a-z
-	#Neu nguoi choi nhap khong hop le xuat thong bao yeu cau nguoi choi nhap lai
+_DangNhapGame.Loop:
 
+	move $a0 , $s0
+	jal _KiemtraUserName
 
+	move $t0,$v0
+	beq $t0,0,_DangNhapGame.Continue
 
+	beq $t0,1,_DangNhapGame.Exit
 
+_DangNhapGame.Continue:
+
+#Xuat tb yeu cau nhap lai ten nguoi choi
+	la $a0,tb_nhap_sai
+	li $v0,4
+	syscall
+
+	la $a0,tb2
+	li $v0,4
+	syscall
+
+#Nhap ten nguoi choi
+	li $v0,8
+	move $a0,$s0
+	li $a1,50
+	syscall
+
+	j _DangNhapGame.Loop
+
+	
+_DangNhapGame.Exit:
 	lw $ra,($sp)
 	lw $s0,4($sp)
 	addi $sp,$sp,32
 
 	jr $ra
-
 
 
 #Main Loop Game
@@ -285,8 +310,7 @@ _GameLoop:
 						syscall
 						j _GameLoop.KiemSoatNhap
 					
-					
-
+				
 
 			#Neu con tu trong de thi				
 			_GameLoop.ContinueLoop1:
@@ -297,6 +321,138 @@ _GameLoop:
 
 	addi $sp,$sp,32
 	jr $ra
+
+
+
+#a0 la dia chi Username
+#Ham kiem tra Username hop le hay khong
+_KiemtraUserName:
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+
+# Luu lai tham so
+	move $s0,$a0
+
+_KiemtraUserName.Loop:
+	lb $t1,($s0)
+
+	beq $t1,'\n',_KiemtraUserName.Loop.Exit
+	#Truyen tham so 
+	move $a0,$t1
+	#Ham kiem tra loai ky tu, va nhan gia tri tra ve tu $v0
+	# 1 : a - z
+	# 1 : A - Z
+	# 1 : 0 - 9
+	# 0 : Ky tu khong hop le
+	jal _TypeOfChar
+
+	move $s1,$v0
+
+	beq $s1,0,_KiemtraUserName.Invalid
+
+	j _KiemtraUserName.Loop.Tangdem
+	
+_KiemtraUserName.Loop.Tangdem:
+	addi $s0,$s0,1
+	j _KiemtraUserName.Loop
+
+_KiemtraUserName.Loop.Exit:
+	li $v0,1
+	j _KiemtraUserName.Exit
+
+_KiemtraUserName.Invalid:
+	li $v0,0
+	j _KiemtraUserName.Exit
+
+_KiemtraUserName.Exit:
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+
+	addi $sp,$sp,32
+
+	jr $ra
+	
+#Ham kiem tra loai ky tu
+#Neu la cac ky tu hop le :
+# 0-9 , a-z , A-Z -> Tra ve 1
+# Else tra ve
+_TypeOfChar:
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+	sw $s0,4($sp)
+
+# Luu lai tham so
+	move $s0,$a0
+
+	li $t1 , 0
+	li $t2 , 0
+	li $t3 , 0
+
+  #Case 1 : Number
+	# kytu > 0 ?
+	li $t3 , 47
+	slt $t0,$t3,$s0	#If true : t0 = 1 , false t0 = 0
+	la $t1 , ($t0)
+	
+	# kytu < 9 ?
+	li $t3 , 58
+	slt $t0,$s0,$t3
+	la $t2 , ($t0)
+	
+	#Check condition
+	beq $t1,$t2,_TypeOfChar.ValidChar
+ 
+ #Else if
+  #Case 2 : a to z
+	# kytu > a ?
+	li $t3 , 96
+	slt $t0,$t3,$s0		#If true : t0 = 1 , false t0 = 0
+	la $t1 , ($t0)
+	
+	# kytu < z ?
+	li $t3 , 123
+	slt $t0,$s0,$t3
+	la $t2 , ($t0)
+	
+	#Check condition
+	beq $t1,$t2,_TypeOfChar.ValidChar
+	
+ #Else if	
+  #Case 3 : A to Z
+	# kytu > A ?
+	li $t3 , 64
+	slt $t0,$t3 ,$s0	#If true : t0 = 1 , false t0 = 0
+	la $t1 , ($t0)
+	
+	# kytu < Z ?
+	li $t3 , 91
+	slt $t0,$s0,$t3 
+	la $t2 , ($t0)
+	
+	#Check condition
+	beq $t1,$t2,_TypeOfChar.ValidChar
+
+	j _TypeOfChar.InvalidChar
+_TypeOfChar.ValidChar: 
+	li $v0 , 1
+	j _TypeOfChar.End
+
+_TypeOfChar.InvalidChar:
+	li $v0, 0
+	j _TypeOfChar.End
+
+_TypeOfChar.End : 	
+	lw $ra,($sp)
+	lw $s0,4($sp)
+
+	addi $sp,$sp,32
+
+	jr $ra
+
+
 
 #TODO: KHUONG
 #Xuat thong bao yeu cau nguoi choi nhap vao lua chon
@@ -314,7 +470,157 @@ _CheDoDoanMotKiTu:
 
 #TODO: HY
 #Che do doan 1 chu
+# $a0 luu dia chi word
+# $a1 luu dia chi encoded_answer
+# $a2 luu dia chi dap_an_nguoi_choi
+# tra ve $v0 so lan doan sai
 _CheDoDoanMotWord:
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+	sw $s2,12($sp)
+
+	move $s0,$a0
+	move $s1,$a1
+	move $s2,$a2
+#thuc hien encode dap an
+	la $a0,encoded_answer
+	la $a1,word
+	jal _EncodeAnswer
+
+	li $v0,4
+	la $a0,tbxh
+	syscall	
+
+	li $t0,0
+_CheDoDoanMotWord.Loop:
+#Xuat encode_answer ra man hinh
+	li $v0,4
+	la $a0,encoded_answer
+	syscall
+
+#Xuat thong bao nhap dap an
+	li $v0,4
+	la $a0,tb_nhap_mot_tu
+	syscall
+
+#Nhap dap an
+	li $v0,8
+	move $a0,$s2
+	li $a1,100
+	syscall
+
+#Kiem tra dap an
+	move $a0,$s0
+	move $a1,$s2
+	jal _AreSameStrings
+	beq $v0,0,_CheDoDoanMotWord.Fail
+	beq $v0,1,_CheDoDoanMotWord.Stop
+
+_CheDoDoanMotWord.Fail:
+	addi $t0,$t0,1
+	beq $t0,7,_CheDoDoanMotWord.Stop
+
+	#Xuat man hinh neu doan sai
+	move $a0,$t0
+	jal _VeManRaManHinhUngVoSoLanSaiCuaNguoiChoi
+
+	j _CheDoDoanMotWord.Loop
+
+_CheDoDoanMotWord.Stop:
+	move $v0,$t0
+
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+	lw $s2,12($sp)
+
+	addi $sp,$sp,32
+
+	jr $ra
+
+
+#Ham kiem tra hai chuoi giong nhau
+# a0 :  Word
+# a1 : dap_an_nguoi_choi
+_AreSameStrings:
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+	sw $s2,12($sp)
+	sw $t0,16($sp)
+	sw $t1,20($sp)
+
+
+	move $s0,$a0
+	move $s1,$a1
+
+	move $a0,$s0
+	jal _DemSoLuongKiTu
+	move $t0,$v0
+
+	move $a0,$s1
+	jal _DemSoLuongKiTu
+	move $t1,$v0
+	
+	addi $t1,$t1,-1 #Giam bot do dai vi chua ky tu \n
+#Neu do dai hai chuoi khac nhau thi tra ve 0
+	bne $t0,$t1,_AreSameStrings.ReturnFalse
+
+	move $s2,$t0
+	addi $s2,$s2,1 # Diem dung cua vong lap
+	li $t2,0 # iterator
+	li $t3,0 # bien dem so ky tu khop nhau
+
+_AreSameStrings.Loop:
+	lb $t0,($s0)
+	lb $t1,($s1)
+	beq $t0,$t1,_AreSameStrings.TangDem
+	j _AreSameStrings.TangDiaChi
+
+_AreSameStrings.TangDem:
+	addi $s0,$s0,1
+	addi $s1,$s1,1
+	addi $t2,$t2,1
+	addi $t3,$t3,1
+	beq $t3,$s2,_AreSameStrings.Stop
+	j _AreSameStrings.Loop
+
+_AreSameStrings.TangDiaChi:
+	addi $s0,$s0,1
+	addi $s1,$s1,1
+	addi $t3,$t3,1
+	beq $t3,$s2,_AreSameStrings.Stop
+	j _AreSameStrings.Loop
+
+_AreSameStrings.Stop:
+	addi $s2,$s2,-1
+	beq $t2,$s2,_AreSameStrings.ReturnTrue
+	j _AreSameStrings.ReturnFalse
+
+_AreSameStrings.ReturnTrue:
+	li $v0,1
+	j _AreSameStrings.Exit
+
+_AreSameStrings.ReturnFalse:
+	li $v0,0
+	j _AreSameStrings.Exit
+
+_AreSameStrings.Exit:
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+	lw $s2,12($sp)
+	lw $t0,16($sp)
+	lw $t1,20($sp)
+
+	addi $sp,$sp,32
+
+	jr $ra
+
+
 #TODO: KHOA
 #Ket thuc tro choi:
 _XuatKetQuaTop10:
@@ -327,7 +633,34 @@ _XuatKetQuaTop10:
 
 	#Tra ve lua chon cua nguoi choi -> $v0
 _YeuCauNguoiChoiLuaChonChoiTiepHayThoat:
+	addi $sp,$sp,-32
+	sw $ra,($sp)
 
+_YeuCauNguoiChoiLuaChonChoiTiepHayThoat.Loop:
+	li $v0,4
+	la $a0,tb_tiep_tuc_choi
+	syscall
+
+	li $v0,12
+	syscall
+
+	beq $v0,1,_YeuCauNguoiChoiLuaChonChoiTiepHayThoat.TiepTuc
+	beq $v0,2,_YeuCauNguoiChoiLuaChonChoiTiepHayThoat.KetThuc
+	j _YeuCauNguoiChoiLuaChonChoiTiepHayThoat.Loop
+
+_YeuCauNguoiChoiLuaChonChoiTiepHayThoat.TiepTuc:
+	li $v0,1
+	j _YeuCauNguoiChoiLuaChonChoiTiepHayThoat.End
+_YeuCauNguoiChoiLuaChonChoiTiepHayThoat.KetThuc:
+	li $v0,2
+	j _YeuCauNguoiChoiLuaChonChoiTiepHayThoat.End
+
+_YeuCauNguoiChoiLuaChonChoiTiepHayThoat.End:
+	lw $ra,($sp)
+
+	addi $sp,$sp,32
+
+	jr $ra
 
 #TODO:KHOA
 	#Cap nhat trang thai nguoi choi
