@@ -10,10 +10,15 @@
 	tb_het_tu:.asciiz "\nHet tu trong de thi roi\n "
 	tb_nhap_sai:.asciiz "\nBan da nhap sai vui long nhap lai \n"
 	tb_nhap_ki_tu:.asciiz "\nMoi ban nhap vao mot ki tu: "
+	tb_diem_nguoi_choi:.asciiz "Diem cua ban la: "
+	tb_so_tu_da_doan:.asciiz "So tu ban da doan duoc la:  "
+	tb_so_lan_doan_sai_con_lai:.asciiz "So tu doan sai con lai la: "
+	tb_nguoi_choi_da_thua:.asciiz "\nBan da thua :)"
 	#*****Ket thuc khu vuc khai bao thong bao
 	#*****String ung voi so lan nguoi choi doan sai
 	doan_sai_lan_1:.asciiz "\n_____________\n|/         | \n|\n|\n|\n|\n|\n|\n|\n|\n|"
 	doan_sai_lan_2:.asciiz "\n_____________\n|/         | \n|          O\n|\n|\n|\n|\n|\n|\n|\n|"
+	doan_sai_lan_3:.asciiz "\n_____________\n|/         | \n|          O\n|          |\n|\n|\n|\n|\n|\n|\n|"
 	doan_sai_lan_4:.asciiz "\n_____________\n|/         | \n|          O\n|         /|\n|\n|\n|\n|\n|\n|\n|"
 	doan_sai_lan_5:.asciiz "\n_____________\n|/         | \n|          O\n|         /|\\\n|\n|\n|\n|\n|\n|\n|"
 	doan_sai_lan_6:.asciiz "\n_____________\n|/         | \n|          O\n|         /|\\\n|         /\n|\n|\n|\n|\n|\n|"
@@ -39,18 +44,20 @@
 	asterisk_sign:.asciiz "*"
 	dash_sign:.asciiz "-"
 	enter_sign:.asciiz "\n"
-		#Che do nguoi choi
+	space:.asciiz "      "
+			#Che do nguoi choi
 			#1 -> che do 1 ki tu
 			#2 -> che do 1 word
+	
 	che_do:.byte 0
 		#Ki tu nguoi choi nhap vao khi choi che do 1 ki tu
 	ki_tu_nhap_vao:.byte 0
 		#Bien dem so lan nguoi choi doan sai
-	dem_so_lan_doan_sai:.word 0	
+	dem_so_lan_doan_sai:.word 5
 		#Luu lai sao diem cua nguoi choi
-	diem: .word 99999
+	diem: .word 10
 		#Luu lai so tu nguoi choi doan duoc
-	so_tu_da_doan:.word 9999
+	so_tu_da_doan:.word 20
 	
 	#******Khu vuc khai bao mang va string
 		#Mang luu du lieu khi doc file dethi.txt
@@ -62,8 +69,8 @@
 	buffer_concate_string2:.space 1000
 	
 	encoded_answer:.space 100
-    	username:.space 50
-        word: .space 100
+	username:.space 50    
+	word: .space 100
 	dap_an_nguoi_choi:.space 100	
 		#Mang so nguyen chua index cac tu da radom
 	temp:.space 30
@@ -87,32 +94,6 @@
 #############################################################################
 #Main:
 
-	#Ham ghi ket qua xuong file
-	#a0-> dia chi username
-	#a1-> diem nguoi choi 
-	#a2-> so luong tu da doan duoc
-	
-	
-#
-	
-	#la $a0,file_out
-	#la $a1,buffer_fout
-	#jal _DocFile
-	#
-	#la $a0,buffer_fout
-	#jal _DemSoLuongNguoiChoi
-	#
-	#move $a0,$v0
-	#li $v0,1
-	#syscall
-	la $a0,username
-	li $a1,50
-	li $v0,8
-	syscall
-	la $a0,username
-	la $a1,diem
-	la $a2,so_tu_da_doan
-	jal _GhiKetQuaRaFile
 	
 
 		
@@ -185,28 +166,182 @@ _DangNhapGame:
 	#luu lai tham so
 	move $s0,$a0
 
+#Xuat tb yeu cau nhap ten nguoi choi
 	la $a0,tb2
 	li $v0,4
 	syscall
 
+#Nhap ten nguoi choi
 	li $v0,8
 	move $a0,$s0
 	li $a1,50
 	syscall
 
-	#TODO: HY
-	#Kiem tra xem nguoi choi nhap hop le hay khong
-	#username hop le bao gom 0-9 A-Z a-z
-	#Neu nguoi choi nhap khong hop le xuat thong bao yeu cau nguoi choi nhap lai
+	_DangNhapGame.Loop:
 
+	move $a0 , $s0
+	jal _KiemtraUserName
 
+	move $t0,$v0
+	beq $t0,0,_DangNhapGame.Continue
 
+	beq $t0,1,_DangNhapGame.Exit
 
+	_DangNhapGame.Continue:
+
+	#Xuat tb yeu cau nhap lai ten nguoi choi
+	la $a0,tb_nhap_sai
+	li $v0,4
+	syscall
+
+	la $a0,tb2
+	li $v0,4
+	syscall
+
+	#Nhap ten nguoi choi
+	li $v0,8
+	move $a0,$s0
+	li $a1,50
+	syscall
+
+	j _DangNhapGame.Loop
+
+	
+	_DangNhapGame.Exit:
 	lw $ra,($sp)
 	lw $s0,4($sp)
 	addi $sp,$sp,32
 
 	jr $ra
+
+#a0 la dia chi Username
+#Ham kiem tra Username hop le hay khong
+_KiemtraUserName:
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+
+# Luu lai tham so
+	move $s0,$a0
+
+_KiemtraUserName.Loop:
+	lb $t1,($s0)
+
+	beq $t1,'\n',_KiemtraUserName.Loop.Exit
+	#Truyen tham so 
+	move $a0,$t1
+	#Ham kiem tra loai ky tu, va nhan gia tri tra ve tu $v0
+	# 1 : a - z
+	# 1 : A - Z
+	# 1 : 0 - 9
+	# 0 : Ky tu khong hop le
+	jal _TypeOfChar
+
+	move $s1,$v0
+
+	beq $s1,0,_KiemtraUserName.Invalid
+
+	j _KiemtraUserName.Loop.Tangdem
+	
+_KiemtraUserName.Loop.Tangdem:
+	addi $s0,$s0,1
+	j _KiemtraUserName.Loop
+
+_KiemtraUserName.Loop.Exit:
+	li $v0,1
+	j _KiemtraUserName.Exit
+
+_KiemtraUserName.Invalid:
+	li $v0,0
+	j _KiemtraUserName.Exit
+
+_KiemtraUserName.Exit:
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+
+	addi $sp,$sp,32
+
+	jr $ra
+	
+#Ham kiem tra loai ky tu
+#Neu la cac ky tu hop le :
+# 0-9 , a-z , A-Z -> Tra ve 1
+# Else tra ve 0
+_TypeOfChar:
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+	sw $s0,4($sp)
+
+	# Luu lai tham so
+	move $s0,$a0
+
+	li $t1 , 0
+	li $t2 , 0
+	li $t3 , 0
+
+  	#Case 1 : Number
+	# kytu >=0 ?
+	li $t3 , 47
+	slt $t0,$t3,$s0	#If true : t0 = 1 , false t0 = 0
+	la $t1 , ($t0)
+	
+	# kytu <=9 ?
+	li $t3 , 58
+	slt $t0,$s0,$t3
+	la $t2 , ($t0)
+	
+	#Check condition
+	beq $t1,$t2,_TypeOfChar.ValidChar
+ 
+ 	#Else if
+ 		#Case 2 : a to z
+		# kytu > a ?
+	li $t3 , 96
+	slt $t0,$t3,$s0		#If true : t0 = 1 , false t0 = 0
+	la $t1 , ($t0)
+	
+		# kytu < z ?
+	li $t3 , 123
+	slt $t0,$s0,$t3
+	la $t2 , ($t0)
+	
+	#Check condition
+	beq $t1,$t2,_TypeOfChar.ValidChar
+	
+ 	#Else if	
+		#Case 3 : A to Z
+			# kytu > A ?
+	li $t3 , 64
+	slt $t0,$t3 ,$s0	#If true : t0 = 1 , false t0 = 0
+	la $t1 , ($t0)
+	
+		# kytu < Z ?
+	li $t3 , 91
+	slt $t0,$s0,$t3 
+	la $t2 , ($t0)
+	
+	#Check condition
+	beq $t1,$t2,_TypeOfChar.ValidChar
+
+	j _TypeOfChar.InvalidChar
+	_TypeOfChar.ValidChar: 
+	li $v0 , 1
+	j _TypeOfChar.End
+
+	_TypeOfChar.InvalidChar:
+	li $v0, 0
+	j _TypeOfChar.End
+
+	_TypeOfChar.End : 	
+	lw $ra,($sp)
+	lw $s0,4($sp)
+
+	addi $sp,$sp,32
+
+	jr $ra
+
 
 
 
@@ -220,35 +355,35 @@ _GameLoop:
 	#Thong bao chao mung den game
 
 	_GameLoop.Loop:
-		jal _InitGame
-	
+		#Khoi tao du lieu cac mang luu du lieu khi nguoi choi lan dau tien choi
+		#hoac choi lai
+		jal _InitGame	
 		#Kiem tra xem nguoi choi da dang nhap chua neu chua dang nhap thi tien hanh dang nhap
 		la $a0,username
 		jal _DemSoLuongKiTu
 		#t0-> so luong ki tu cua username
 		move $t0,$v0
 		#Kiem tra xem nguoi choi dang nhap chua
+		#neu do dai chuoi username la 0 nghia la nguoi choi chua dang nhap vao game
+		#ta tien hanh dang nhap
 		beq $t0,$0,_GameLoop.DangNhap
-			#Neu khong tiep tuc vong lap game			
+			#Neu nguoi choi da dang nhap roi thi cho nguoi choi tiep tuc
+			#choi 		
 			j _GameLoop.ContinueLoop0
-
 			_GameLoop.DangNhap:			
 			la $a0,username
 			jal _DangNhapGame	
-			#
-
-			
+			#			
 			_GameLoop.ContinueLoop0:
 
 			#May tien hanh cho mot tu trong dethi.txt
-
 			#Ham Chon de tu 1 chuoi de doc tu buffer_fin
 			#Nhan vao dia chi buffer_fin -> $a0
 			#Nhan vao dia chi cua mang ARRTu_Da_Random -> $a1
 			#Nhan vao dia chi cua word -> $a2
 
-			#Tra ve 1-> Tim duoc tu trong de thi
-			#Tra ve 0 -> Het tu trong de thi 
+				#Tra ve 1-> Tim duoc tu trong de thi
+				#Tra ve 0 -> Het tu trong de thi 
 			la $a0,buffer_fin
 			la $a1,ARRTu_Da_Random
 			la $a2,word
@@ -258,16 +393,15 @@ _GameLoop:
 			#Neu khong tiep tuc vong lap
 			beq $v0,$0,_GameLoop.HetTuTrongDeThi
 			j _GameLoop.ContinueLoop1 #Con tu trong dethi
-
+			#######################################################################
 				_GameLoop.HetTuTrongDeThi:
 					la $a0,tb_het_tu
 					li $v0,4
 					syscall
-					#TODO:
-						#Ghi ket qua nguoi choi ra file nguoichoi.txt
+					
 					jal _GhiKetQuaRaFile
-					#TODO:
 					jal _XuatKetQuaTop10
+					#Label kiem soat khi nguoi choi nhap sai lua chon
 					_GameLoop.KiemSoatNhap:
 					#TODO
 					jal _YeuCauNguoiChoiLuaChonChoiTiepHayThoat
@@ -283,14 +417,16 @@ _GameLoop:
 						la $a0,tb_nhap_sai
 						li $v0,4
 						syscall
-						j _GameLoop.KiemSoatNhap
+					j _GameLoop.KiemSoatNhap
 					
 					
 
-
+			#######################################################################
 			#Neu con tu trong de thi				
 			_GameLoop.ContinueLoop1:
 			jal _YeuCauNguoiChoiChonCheDoChoi
+			sw $v0,che_do
+			
 
 
 	j _GameLoop.Loop
@@ -314,10 +450,162 @@ _CheDoDoanMotKiTu:
 
 #TODO: HY
 #Che do doan 1 chu
+# $a0 luu dia chi word
+# $a1 luu dia chi encoded_answer
+# $a2 luu dia chi dap_an_nguoi_choi
+# tra ve $v0 so lan doan sai
 _CheDoDoanMotWord:
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+	sw $s2,12($sp)
+
+	move $s0,$a0
+	move $s1,$a1
+	move $s2,$a2
+	#thuc hien encode dap an
+	la $a0,encoded_answer
+	la $a1,word
+	jal _EncodeAnswer
+
+	#NEED FIX
+	#li $v0,4
+	#la $a0,tbxh
+	#syscall	
+
+	li $t0,0
+	_CheDoDoanMotWord.Loop:
+	#Xuat encode_answer ra man hinh
+	li $v0,4
+	la $a0,encoded_answer
+	syscall
+
+	#Xuat thong bao nhap dap an
+	li $v0,4
+	la $a0,tb_nhap_mot_tu
+	syscall
+
+	#Nhap dap an
+	li $v0,8
+	move $a0,$s2
+	li $a1,100
+	syscall
+
+	#Kiem tra dap an
+	move $a0,$s0
+	move $a1,$s2
+	jal _AreSameStrings
+	beq $v0,0,_CheDoDoanMotWord.Fail
+	beq $v0,1,_CheDoDoanMotWord.Stop
+
+	_CheDoDoanMotWord.Fail:
+	addi $t0,$t0,1
+	beq $t0,7,_CheDoDoanMotWord.Stop
+
+	#Xuat man hinh neu doan sai
+	move $a0,$t0
+	jal _VeManRaManHinhUngVoSoLanSaiCuaNguoiChoi
+
+	j _CheDoDoanMotWord.Loop
+
+	_CheDoDoanMotWord.Stop:
+	move $v0,$t0
+
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+	lw $s2,12($sp)
+
+	addi $sp,$sp,32
+
+	jr $ra
+
+
+#Ham kiem tra hai chuoi giong nhau
+# a0 :  Word
+# a1 : dap_an_nguoi_choi
+_AreSameStrings:
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+	sw $s2,12($sp)
+	sw $t0,16($sp)
+	sw $t1,20($sp)
+
+
+	move $s0,$a0
+	move $s1,$a1
+
+	move $a0,$s0
+	jal _DemSoLuongKiTu
+	move $t0,$v0
+
+	move $a0,$s1
+	jal _DemSoLuongKiTu
+	move $t1,$v0
+	
+	addi $t1,$t1,-1 #Giam bot do dai vi chua ky tu \n
+	#Neu do dai hai chuoi khac nhau thi tra ve 0
+	bne $t0,$t1,_AreSameStrings.ReturnFalse
+
+	move $s2,$t0
+	addi $s2,$s2,1 # Diem dung cua vong lap
+	li $t2,0 # iterator
+	li $t3,0 # bien dem so ky tu khop nhau
+
+	_AreSameStrings.Loop:
+		lb $t0,($s0)
+		lb $t1,($s1)
+		beq $t0,$t1,_AreSameStrings.TangDem
+	j _AreSameStrings.TangDiaChi
+
+	_AreSameStrings.TangDem:
+		addi $s0,$s0,1
+		addi $s1,$s1,1
+		addi $t2,$t2,1
+		addi $t3,$t3,1
+		beq $t3,$s2,_AreSameStrings.Stop
+	j _AreSameStrings.Loop
+
+	_AreSameStrings.TangDiaChi:
+		addi $s0,$s0,1
+		addi $s1,$s1,1
+		addi $t3,$t3,1
+		beq $t3,$s2,_AreSameStrings.Stop
+	j _AreSameStrings.Loop
+
+	_AreSameStrings.Stop:
+		addi $s2,$s2,-1
+		beq $t2,$s2,_AreSameStrings.ReturnTrue
+	j _AreSameStrings.ReturnFalse
+
+	_AreSameStrings.ReturnTrue:
+		li $v0,1
+	j _AreSameStrings.Exit
+
+	_AreSameStrings.ReturnFalse:
+		li $v0,0
+	j _AreSameStrings.Exit
+
+	_AreSameStrings.Exit:
+
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+	lw $s2,12($sp)
+	lw $t0,16($sp)
+	lw $t1,20($sp)
+
+	addi $sp,$sp,32
+
+	jr $ra
 #TODO: KHOA
 #Ket thuc tro choi:
 _XuatKetQuaTop10:
+
+
 
 #TODO:HY
 #Yeu cau nguoi choi chon choi tiep hay thoat tro choi 
@@ -327,6 +615,34 @@ _XuatKetQuaTop10:
 
 	#Tra ve lua chon cua nguoi choi -> $v0
 _YeuCauNguoiChoiLuaChonChoiTiepHayThoat:
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+
+	_YeuCauNguoiChoiLuaChonChoiTiepHayThoat.Loop:
+	li $v0,4
+	la $a0,tb_tiep_tuc_choi
+	syscall
+
+	li $v0,12
+	syscall
+
+	beq $v0,1,_YeuCauNguoiChoiLuaChonChoiTiepHayThoat.TiepTuc
+	beq $v0,2,_YeuCauNguoiChoiLuaChonChoiTiepHayThoat.KetThuc
+	j _YeuCauNguoiChoiLuaChonChoiTiepHayThoat.Loop
+
+	_YeuCauNguoiChoiLuaChonChoiTiepHayThoat.TiepTuc:
+		li $v0,1
+	j _YeuCauNguoiChoiLuaChonChoiTiepHayThoat.End
+	_YeuCauNguoiChoiLuaChonChoiTiepHayThoat.KetThuc:
+		li $v0,2
+	j _YeuCauNguoiChoiLuaChonChoiTiepHayThoat.End
+
+	_YeuCauNguoiChoiLuaChonChoiTiepHayThoat.End:
+	
+	lw $ra,($sp)
+	addi $sp,$sp,32
+
+	jr $ra
 
 
 #TODO:KHOA
@@ -336,22 +652,202 @@ _YeuCauNguoiChoiLuaChonChoiTiepHayThoat:
 	#So lan sai con lai doi voi che do 1 ki tu
 _CapNhatTrangThaiNguoiChoi:
 
-#TODO:
     #Cap nhat man hinh o che do 1 ki tu
 _CapNhatManHinhOCheDoMotKiTu:
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+	sw $t0,4($sp)
+	
 
-#TODO:
+	#Cap nhat diem cua nguoi choi hien tai, so tu mà nguoi choi da doan duoc
+	#Tien hanh in ra man hinh so diem hien tai cua nguoi choi 
+
+	li $v0,4
+	la $a0,tb_diem_nguoi_choi
+	syscall
+
+	lw $a0,diem
+	li $v0,1
+	syscall
+
+	li $v0,4
+	la $a0,enter_sign
+	syscall
+
+	li $v0,4
+	la $a0,tb_so_tu_da_doan
+	syscall
+
+	lw $a0,so_tu_da_doan
+	li $v0,1
+	syscall
+
+	li $v0,4
+	la $a0,enter_sign
+	syscall
+
+	la $a0,tb_so_lan_doan_sai_con_lai
+	li $v0,4
+	syscall
+
+	lw $a0,dem_so_lan_doan_sai
+	li $t0,7
+	sub $a0,$t0,$a0
+	li $v0,1 
+	syscall
+
+
+	
+	li $v0,4
+	la $a0,enter_sign
+	syscall
+	
+	li $v0,4
+	la $a0,enter_sign
+	syscall
+
+	lw $t0,dem_so_lan_doan_sai
+	#Switch case nguoi choi sai n ki tu xuat ra thong bao tuong ung
+
+	beq $t0,1,_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai1Lan
+	beq $t0,2,_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai2Lan
+	beq $t0,3,_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai3Lan
+	beq $t0,4,_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai4Lan
+	beq $t0,5,_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai5Lan
+	beq $t0,6,_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai6Lan
+	beq $t0,7,_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai7Lan
+	bge $t0,8,_CapNhatManHinhOCheDoMotKiTu.NguoiChoiDaThua
+
+	
+
+	#Cap nhat hinh phat danh cho nguoi choi 
+	_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai1Lan:
+		li $v0,4
+		la $a0,doan_sai_lan_1
+		syscall
+	j _CapNhatManHinhOCheDoMotKiTu.Continue
+	
+	_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai2Lan:
+		li $v0,4
+		la $a0,doan_sai_lan_2
+		syscall
+	j _CapNhatManHinhOCheDoMotKiTu.Continue
+	
+	_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai3Lan:
+		li $v0,4
+		la $a0,doan_sai_lan_3
+		syscall
+	j _CapNhatManHinhOCheDoMotKiTu.Continue
+
+	_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai4Lan:
+		li $v0,4
+		la $a0,doan_sai_lan_4
+		syscall
+	j _CapNhatManHinhOCheDoMotKiTu.Continue
+
+	_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai5Lan:
+		li $v0,4
+		la $a0,doan_sai_lan_5
+		syscall
+	j _CapNhatManHinhOCheDoMotKiTu.Continue
+
+	_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai6Lan:
+		li $v0,4
+		la $a0,doan_sai_lan_6
+		syscall
+	j _CapNhatManHinhOCheDoMotKiTu.Continue
+
+	_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai7Lan:
+		li $v0,4
+		la $a0,doan_sai_lan_7
+		syscall
+	j _CapNhatManHinhOCheDoMotKiTu.Continue
+
+	_CapNhatManHinhOCheDoMotKiTu.NguoiChoiDaThua:
+		li $v0,4
+		la $a0,doan_sai_lan_7
+		syscall
+
+		li $v0,4
+		la $a0,tb_nguoi_choi_da_thua
+		syscall
+
+
+
+
+	_CapNhatManHinhOCheDoMotKiTu.Continue:
+	
+	lw $ra,($sp)
+	lw $t0,4($sp)
+	addi $sp,$sp,32
+	
+	jr $ra
+
 	#Cap nhat man hinh o che do 1 word
 _CapNhatManHinhOCheDoMotWord:
 
-#TODO:
-#Ve man hinh theo so lan doan sai
-	#a0-> dem_so_lan_doan_sai
-_VeManRaManHinhUngVoSoLanSaiCuaNguoiChoi:
+	addi $sp,$sp,-32
+	sw $ra,($sp)
 
-#TODO
+	#In ra diem nguoi choi
+	li $v0,4
+	la $a0,tb_diem_nguoi_choi
+	syscall
+
+	li $v0,1
+	lw $a0,diem
+	syscall
+
+	li $v0,4
+	la $a0,enter_sign
+	syscall
+
+	li $v0, 4
+	la $a0,tb_so_tu_da_doan
+	syscall
+
+	li $v0,1
+	la $a0,so_tu_da_doan
+
+	li $v0,4
+	la $a0,enter_sign
+	syscall
+
+	lw $ra,($sp)	
+	addi $sp,$sp,32
+	jr $ra
+
+
+
 #Cap nhat data nguoi choi khi nguoi choi chien thang (Diem = Diem + So luong ki tu)
+#so_tu_da_doan +++
 _CapNhatDuLieuNguoiChoi: 
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+	sw $t0,4($sp)
+	sw $t1,8($sp)
+	
+	#so_tu_da_doan ++
+	lw $t0,so_tu_da_doan
+	addi $t0,$t0,1
+	sw $t0,so_tu_da_doan
+	
+	#diem+=sotutrongword
+	la $a0,word
+	jal _DemSoLuongKiTu
+
+	lw $t0,diem
+	add $t0,$t0,$v0
+	sw $t0,diem
+
+	
+
+	lw $ra,($sp)
+	lw $t0,4($sp)
+	lw $t1,8($sp)
+	
+	addi $sp,$sp,32
+	jr $ra
 
 #Ham Dem so luong ki tu trong 1 chuoi
     #Nhan vao a0 la dia chi cua chuoi
@@ -900,7 +1396,6 @@ _DocMotTuVaoWord:
 	jr $ra
 
 	 
-#DONE
 #Ham ghi ket qua xuong file
 	#a0-> dia chi username
 	#a1-> diem nguoi choi 
@@ -937,6 +1432,713 @@ _GhiKetQuaRaFile:
 	la $a2,temp
 	jal _NoiChuoi
 	
+	
 
+	#result-> username-diem-
+	la $a0,buffer_concate_string1
+	la $a1,buffer_concate_string2
+	la $a2,dash_sign
+	jal _NoiChuoi
+
+	#D
+	la $a0,buffer_concate_string1
+	li $v0,4
+	syscall
+	
+	la $a0,enter_sign
+	li $v0,4
+	syscall
+	#result-> username-diem-so_tu_da_doan
+
+	move $a0,$s2
+	la $a1,temp
+	jal _ConvertIntToString
+	la $a0,buffer_concate_string2
+	la $a1,buffer_concate_string1
+	la $a2,temp
+	jal _NoiChuoi
+
+	#D
+	la $a0,buffer_concate_string2
+	li $v0,4
+	syscall
+	
+	la $a0,enter_sign
+	li $v0,4
+	syscall
+	#result-> username-diem-so_tu_da_doan*
+	la $a0,buffer_concate_string1
+	la $a1,buffer_concate_string2
+	la $a2,asterisk_sign
+	jal _NoiChuoi
+
+	#D
+	la $a0,buffer_concate_string1
+	li $v0,4
+	syscall
+	
+	la $a0,enter_sign
+	li $v0,4
+	syscall
+
+
+	
+
+
+	li   $v0, 13       # system call for open file
+  	la   $a0, file_out     # output file name
+  	li   $a1, 9        # Open for writing (flags are 0: read, 1: write 9:write and append to existed file)
+  	li   $a2, 0        # mode is ignored
+  	syscall            # open a file (file descriptor returned in $v0)
+	#Mo file
+
+	move $t0,$v0
+	la $a0,buffer_concate_string1
+	jal _DemSoLuongKiTu
+	move $t1,$v0
+	
+	li $v0,1
+	move $a0,$t1
+	syscall
+
+	la $a0,enter_sign
+	li $v0,4
+	syscall
+	
+	move $a0,$t0
+	li $v0,15
+	la $a1,buffer_concate_string1
+	move $a2,$t1
+	syscall
+
+
+	#close file
+	li $v0,16
+	move $a0,$t0
+	syscall
+
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $t0,8($sp)
+	lw $t1,12($sp)
+	lw $s1,16($sp)
+	lw $s2,20($sp)
+	lw $s3,24($sp)
+	addi $sp,$sp,32
+	jr $ra
 
 #Ham xu li khi het luot choi -> Ket thuc khi nguoi cho chon choi tiep thi khong can nhap lai ten
+#Ham xuat mang
+	#a0-> dia chi mang
+	#a1 -> so luong phan tu cua mang
+
+_XuatMang:
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+	sw $t1,12($sp)
+	
+
+
+	move $s0,$a0
+	move $s1,$a1
+
+	li $v0,4
+	la $a0,tb2
+	syscall
+
+	li $t1,0
+
+
+	_XuatMang.Loop:
+		bge $t1,$s1,_XuatMang.ExitLoop
+		
+		lw $a0,($s0)
+		li $v0,1
+		syscall
+
+		la $a0,enter_sign
+		li $v0,4
+		syscall		
+
+		addi $t1,$t1,1
+		addi $s0,$s0,4
+	j _XuatMang.Loop
+
+	_XuatMang.ExitLoop:
+
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+	lw $t1,12($sp)
+	addi $sp,$sp,32
+
+	jr $ra
+#Lay ra so luong nguoi choi tu buffer_fin
+#a0 -> dia chi buffer_fin
+_DemSoLuongNguoiChoi:
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $t0,8($sp)
+	sw $t1,12($sp)
+	#Luu lai dia chi
+	move $s0,$a0
+	li $t1,0
+
+	_DemSoLuongNguoiChoi.Loop:
+
+	lb $t0,($s0)
+	beq $t0,$0,_DemSoLuongNguoiChoi.ExitLoop
+	beq $t0,42,_DemSoLuongNguoiChoi.TangDem
+	_DemSoLuongNguoiChoi.ContinueLoop: 
+		addi $s0,$s0,1
+	j _DemSoLuongNguoiChoi.Loop
+
+
+	_DemSoLuongNguoiChoi.TangDem:
+		addi $t1,$t1,1
+		j _DemSoLuongNguoiChoi.ContinueLoop
+	
+	_DemSoLuongNguoiChoi.ExitLoop:
+	
+	_DemSoLuongNguoiChoi.Restore:
+	move $v0,$t1
+
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $t0,8($sp)
+	lw $t1,12($sp)
+	addi $sp,$sp,32
+	jr $ra
+
+#Luu du lieu tu buffer1 vao 2 mang 
+#ARRIndex_Nguoi_Choi, ARRDiem_Nguoi_Choi
+	#a0 -> dia chi buffer_fin
+	#a1 -> Mang diem
+	#a2 -> Mang index
+_LayDuLieuNguoiChoiLuuVaoMang:
+	addi $sp,$sp,-36
+	sw $ra,($sp)
+	sw $a0,4($sp)
+	sw $a1,8($sp)
+	sw $a2,12($sp)
+	sw $t0,16($sp)
+	sw $t1,20($sp)
+	sw $t2,24($sp)
+	sw $t3,28($sp)
+	sw $t4,32($sp)
+
+
+
+
+	move $s0,$a0
+	move $s1,$a1
+	move $s2,$a2
+	
+	
+
+
+
+
+	#Index nguoi choi
+	li $t1,0
+
+	
+
+	_LayDuLieuNguoiChoiLuuVaoMang.Loop:
+		lb $t2,($s0)
+		beq $t2,$0,_LayDuLieuNguoiChoiLuuVaoMang.ExitLoop
+
+
+		#Tong
+		
+		beq $t2,45,_LayDuLieuNguoiChoiLuuVaoMang.ThucHienLayDuLieu
+		
+		_LayDuLieuNguoiChoiLuuVaoMang.ContinueLoop:
+		addi $s0,$s0,1
+	
+	j _LayDuLieuNguoiChoiLuuVaoMang.Loop
+	
+		_LayDuLieuNguoiChoiLuuVaoMang.ThucHienLayDuLieu:
+		li $t0,0
+		addi $s0,$s0,1
+		_LayDuLieuNguoiChoiLuuVaoMang.InnerLoop:
+
+			lb $t2,($s0)
+			beq $t2,45,_LayDuLieuNguoiChoiLuuVaoMang.ThucHienGhiDuLieu		
+			beq $t2,42,_LayDuLieuNguoiChoiLuuVaoMang.ContinueLoop
+			
+			addi $t3,$t2,-48
+			li $t4,10
+			mult $t4,$t0
+			mflo $t0
+			add $t0,$t0,$t3	
+			addi $s0,$s0,1
+
+		j _LayDuLieuNguoiChoiLuuVaoMang.InnerLoop	
+			_LayDuLieuNguoiChoiLuuVaoMang.ThucHienGhiDuLieu:
+				
+				sw $t0,($s1)
+				sw $t1,($s2)
+
+				addi $s1,$s1,4
+				addi $s2,$s2,4
+				addi $t1,$t1,1
+
+		_LayDuLieuNguoiChoiLuuVaoMang.ExitInnerLoop:
+
+
+	
+	j _LayDuLieuNguoiChoiLuuVaoMang.ContinueLoop
+
+	_LayDuLieuNguoiChoiLuuVaoMang.ExitLoop:
+	
+
+	
+	lw $ra,($sp)
+	lw $a0,4($sp)
+	lw $a1,8($sp)
+	lw $a2,12($sp)
+	lw $t0,16($sp)
+	lw $t1,20($sp)
+	lw $t2,24($sp)
+	lw $t3,28($sp)
+	lw $t4,32($sp)
+	addi $sp,$sp,36
+
+	jr $ra
+
+#Sap xep ARRDiem_Nguoi_Choi vaf MangIndex
+#a0 - Dia chi ARRDiem_Nguoi_Choi
+#a1 - Dia chi mang index
+#a2 - So luong phan tu trong mang
+_SapXepGiamDan:
+	addi $sp,$sp,-40
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+	sw $s2,12($sp)
+	sw $t0,16($sp)
+	sw $t1,20($sp)
+	sw $t2,24($sp)
+	sw $t3,28($sp)
+	sw $t4,32($sp)
+	sw $t5,36($sp)
+
+	move $s0,$a0
+	move $s1,$a1
+	move $s2,$a2
+
+	#Bien chay vong lap ngoai
+	li $t0,0
+
+	
+
+
+	_SapXepGiamDan.Loop:
+		
+		bge $t0,$s2,_SapXepGiamDan.ExitLoop
+		#max = arr[t0]-> t2
+		move $a0,$s0
+		move $a1,$t0
+		jal _LayRaPhanTuTaiIndex
+		move $t2,$v0
+		#indexMax-> t3
+		move $t3,$t0
+			
+			addi $t1,$t0,1
+			_SapXepGiamDan.InnerLoop:
+
+				bge $t1,$s2,_SapXepGiamDan.ExitInnerLoop
+
+				move $a0,$s0
+				move $a1,$t1
+				jal _LayRaPhanTuTaiIndex
+				move $t4,$v0
+				blt $t2,$t4,_SapXepGiamDan.ThayDoiMax
+				j _SapXepGiamDan.ContinueInnerLoop
+					_SapXepGiamDan.ThayDoiMax:
+						move $t2,$t4
+						move $t3,$t1
+					j _SapXepGiamDan.ContinueInnerLoop
+					
+					_SapXepGiamDan.ContinueInnerLoop:
+					addi $t1,$t1,1
+				j _SapXepGiamDan.InnerLoop
+
+
+							
+
+			_SapXepGiamDan.ExitInnerLoop:
+
+		bne $t0,$t3, _SapXepGiamDan.Swap
+
+		_SapXepGiamDan.ContinueLoop:
+
+		addi $t0,$t0,1
+	j _SapXepGiamDan.Loop
+
+	_SapXepGiamDan.Swap:
+		#Swap mang diem nguoi choi
+		#lay phan dau tai index $t0 
+		move $a0,$s0
+		move $a1,$t0		
+		jal _LayRaPhanTuTaiIndex
+		move $t4,$v0
+
+
+		move $a0,$s0
+		move $a1,$t0
+		move $a2,$t2
+		jal _SetGiatriTaiIndex
+
+		move $a0,$s0
+		move $a1,$t3
+		move $a2,$t4
+		jal _SetGiatriTaiIndex
+
+
+		#Swap Mang index nguoi choi
+
+		move $a0,$s1
+		move $a1,$t0
+		jal _LayRaPhanTuTaiIndex
+		move $t4,$v0
+
+		move $a0,$s1
+		move $a1,$t3
+		jal _LayRaPhanTuTaiIndex
+		move $t5,$v0
+
+		move $a0,$s1
+		move $a1,$t0
+		move $a2,$t5
+		jal _SetGiatriTaiIndex
+
+		move $a0,$s1
+		move $a1,$t3
+		move $a2,$t4
+		jal _SetGiatriTaiIndex
+				
+		j _SapXepGiamDan.ContinueLoop
+
+	_SapXepGiamDan.ExitLoop:
+
+		
+
+
+
+
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+	lw $s2,12($sp)
+	lw $t0,16($sp)
+	lw $t1,20($sp)
+	lw $t2,24($sp)
+	lw $t3,28($sp)
+	lw $t4,32($sp)
+	lw $t5,36($sp)
+	addi $sp,$sp,40
+	jr $ra
+#Thuc hien encode word
+	#a0,encoded_answer
+	#a1,word	
+_EncodeAnswer:
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+	sw $t1,12($sp)
+	sw $t2,16($sp)
+	sw $t0,20($sp)
+
+	move $s0,$a0
+	move $s1,$a1
+
+	
+	move $a0,$s1
+	jal _DemSoLuongKiTu
+	move $t2,$v0
+	
+	move $a0,$v0
+	li $v0,1
+	syscall
+
+	#ma ascii *
+	li $t0,0
+	li $t1,42
+	_EncodeAnswer.Loop:		
+		bge $t0,$t2,_EncodeAnswer.ExitLoop
+		sb $t1,($s0)
+		
+		addi $s0,$s0,1
+		addi $t0,$t0,1
+	j _EncodeAnswer.Loop
+
+	_EncodeAnswer.ExitLoop:
+
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+	lw $t1,12($sp)
+	lw $t2,16($sp)
+	lw $t0,20($sp)
+	addi $sp,$sp,32
+	
+	jr $ra
+
+#Tang dem
+	#a0 -> dia chi bien dem
+_TangDem:
+	addi $sp,$sp,-32	
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $t0,8($sp)
+
+	move $s0,$a0
+	lw $t0,($s0)
+	addi $t0,$t0,1
+	sw $t0,($sp)
+
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $t0,8($sp)
+	addi $sp,$sp,32
+	jr $ra
+
+#Kiem tra ki tu nguoi choi nhap vao co tong tai trong dap an 
+#va thay doi encoded_answer
+	#a0 -> ki tu can kiem tra (byte)
+	#a1 -> word
+	#a2 -> encoded_answer
+
+	#Tra ve 1 neu nguoi choi nhap dung
+	#Tra ve 0 neu nguoi choi nhap sai
+_KiemTraDapAnVaThayDoiEncodedAnswer:
+
+	addi $sp,$sp,-36
+	sw $ra, ($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+	sw $s2,12($sp)
+	sw $t0,16($sp)
+	sw $t1,20($sp)
+	sw $t2,24($sp)
+	sw $t3,28($sp)
+	sw $t4,32($sp)
+	
+
+	move $s0,$a0
+	move $s1,$a1
+	move $s2,$a2
+
+	move $a0,$s1
+	jal _DemSoLuongKiTu
+	#t0-> so luong ki tu	
+	move $t0,$v0
+	#t1-> index
+	li $t1,0
+	#load ki tu nguoi choi nhap vao
+	lb $t4,($s0)
+
+	#D
+	move $a0,$t4
+	li $v0,1
+	syscall
+
+	#flag kiem tra xem nguoi choi co nhap dung hay khong
+	li $t3,0
+	_KiemTraDapAnVaThayDoiEncodedAnswer.Loop:
+		bge $t1,$t0,_KiemTraDapAnVaThayDoiEncodedAnswer.ExitLoop
+
+		lb $t2,($s1)
+
+		beq $t2,$t4,_KiemTraDapAnVaThayDoiEncodedAnswer.ThayDoiEncodedAnswer
+		j _KiemTraDapAnVaThayDoiEncodedAnswer.ContinueLoop
+
+		_KiemTraDapAnVaThayDoiEncodedAnswer.ThayDoiEncodedAnswer:
+			li $t3,1
+			sb $t4,($s2)
+			#De
+			la $a0,tb1
+			li $v0,4
+			syscall
+
+
+		_KiemTraDapAnVaThayDoiEncodedAnswer.ContinueLoop:
+		
+		addi $s1,$s1,1
+		addi $s2,$s2,1
+		addi $t1,$t1,1
+
+
+	j _KiemTraDapAnVaThayDoiEncodedAnswer.Loop
+
+	_KiemTraDapAnVaThayDoiEncodedAnswer.ExitLoop:
+
+
+	move $v0,$t3
+
+	lw $ra, ($sp)
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+	lw $s2,12($sp)
+	lw $t0,16($sp)
+	lw $t1,20($sp)
+	lw $t2,24($sp)
+	lw $t3,28($sp)
+	lw $t4,32($sp)
+	
+	addi $sp,$sp,36
+	jr $ra
+
+#Thuc hien noi 2 chuoi lai voi nhau
+	#a0-> buffer_fin (ket qua sau khi noi chuoi)
+	#a1-> dia chi chuoi 1
+	#a2-> dia chi chuoi 2
+
+	#ket qua buff = a1 + a2 
+_NoiChuoi:
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+	sw $s2,12($sp)
+	sw $t0,16($sp)
+	sw $t1,20($sp)
+	sw $t2,24($sp)
+	sw $t3,28($sp)
+	#sw $t4,32($sp)
+
+	
+
+	#Luu lai cac tham so
+	move $s0,$a0
+	move $s1,$a1
+	move $s2,$a2
+
+	#Khoi tao buffer_fin
+	#move $a0,$s0
+	#li $a1,1000
+	#li $a2,1
+	#jal _KhoiTaoMang
+
+	##index chuoi buffer_fin
+
+	_NoiChuoi.Loop1:
+		lb $t3,($s1) 
+		beqz $t3,_NoiChuoi.ExitLoop1
+		lb $t3,($s1)
+		sb $t3,($s0)
+
+		addi $s0,$s0,1
+		addi $s1,$s1,1
+
+		
+	j _NoiChuoi.Loop1
+	
+	_NoiChuoi.ExitLoop1:
+
+	_NoiChuoi.Loop2:
+		lb $t1,($s2)
+		beqz $t1,_NoiChuoi.ExitLoop2
+		
+		sb $t1,($s0)	
+	
+		addi $s0,$s0,1
+		addi $s2,$s2,1
+
+	j _NoiChuoi.Loop2
+	
+	_NoiChuoi.ExitLoop2:
+	sb $0,($s0)
+	
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+	lw $s2,12($sp)
+	lw $t0,16($sp)
+	lw $t1,20($sp)
+	lw $t2,24($sp)
+	lw $t3,28($sp)
+	addi $sp,$sp,32
+	jr $ra
+
+#Chuyen doi so nguyen sang string
+	#a0 -> dia chi cua mot so nguyen
+	#a1 -> dia chi chuoi temp (ket qua)
+_ConvertIntToString:
+
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+	sw $s2,12($sp)
+	sw $t0,16($sp)
+	sw $t1,20($sp)
+	sw $t2,24($sp)
+	sw $t3,28($sp)
+
+	lw $s0,($a0)
+	move $s1,$a1
+	#Backup dia chi phan tu dau tien
+	move $s2,$a1
+	
+	li $t0,10
+	
+	_ConvertIntToString.DoWhileLoop:
+		div $s0,$t0
+		#t1-> luu thuong
+		#t2 -> luu du
+		mflo $t1
+		mfhi $t2
+		addi $t2,$t2,48
+		move $s0,$t1
+		sb $t2,($s1)
+		
+		
+		addi $s1,$s1,1
+	bnez $t1,_ConvertIntToString.DoWhileLoop 
+	#Tien hanh dao nguoc chuoi
+		sb $0,($s1)
+		addi $s1,$s1,-1
+
+		move $a0,$s2
+		jal _DemSoLuongKiTu
+		#So luong ki tu
+		move $t0,$v0
+
+		srl $t0,$t0,1
+		
+		li $t1,0
+
+	_ConvertIntToString.Loop:		
+		beq $t1,$t0,_ConvertIntToString.ExitLoop
+
+
+		lb $t2,($s2)
+		lb $t3,($s1)
+
+		sb $t2,($s1)
+		sb $t3,($s2)
+
+		addi $s2,$s2,1
+		addi $s1,$s1,-1
+		addi $t1,$t1,1
+	
+	j _ConvertIntToString.Loop
+	_ConvertIntToString.ExitLoop:
+	
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+	lw $s2,12($sp)
+	lw $t0,16($sp)
+	lw $t1,20($sp)
+	lw $t2,24($sp)
+	lw $t3,28($sp)
+	addi $sp,$sp,32
+	jr $ra
