@@ -21,7 +21,7 @@
 	tb_tiep_tuc_choi:.asciiz "\nMoi ban nhap vao lua chon:\n1.Tiep tuc choi\n2.Thoat"
 	tb_xuat_ten:.asciiz "\nTen: "
 	tb_xuat_diem:.asciiz "\nDiem: "
-	tb_so_tu_da_doan2:.asciiz "\nSo tu ban da doan duoc la: "
+	tb_so_tu_da_doan_top:.asciiz "\nSo tu da doan duoc la: "
 	tb_top:.asciiz "\nTop "
 	tb_nguoi_choi_doan_sai:.asciiz "\nBan da doan sai roi"
 	tb_che_do_mot_ki_tu:.asciiz "\nBan dang o che do doan 1 ki tu"
@@ -533,7 +533,7 @@ _GameLoop:
 				
 
 
-				jal _GameLoop.TienHanhKiemTraVaRandomTu
+			j _GameLoop.TienHanhKiemTraVaRandomTu
 			
 			_GameLoop.NguoiChoiDoanSai:
 
@@ -594,12 +594,12 @@ _YeuCauNguoiChoiChonCheDoChoi:
 	la $a0,enter_sign
 	syscall
 
-	li $v0,5
+	li $v0,12
 	syscall
 	move $t0,$v0
 
-	beq $t0,1,_YeuCauNguoiChoiChonCheDoChoi.Return
-	beq $t0,2,_YeuCauNguoiChoiChonCheDoChoi.Return
+	beq $t0,49,_YeuCauNguoiChoiChonCheDoChoi.Return
+	beq $t0,50,_YeuCauNguoiChoiChonCheDoChoi.Return
 	
 	li $v0,4
 	la $a0,tb_nguoi_nhap_che_do_sai
@@ -608,10 +608,7 @@ _YeuCauNguoiChoiChonCheDoChoi:
 	j _YeuCauNguoiChoiChonCheDoChoi.NhapLai
 
 	_YeuCauNguoiChoiChonCheDoChoi.Return:
-		move $v0,$t0
-
-
-	
+		addi $v0,$t0,-48	
 	
 	lw $ra,($sp)
 	lw $t0,4($sp)
@@ -701,7 +698,7 @@ _CheDoDoanMotKiTu:
 
 		jal _CapNhatManHinhOCheDoMotKiTu
 		lw $t0,dem_so_lan_doan_sai
-		bge $t0,8,_CheDoDoanMotKiTu.HetLuotDoan
+		bge $t0,7,_CheDoDoanMotKiTu.HetLuotDoan
 		j _CheDoDoanMotKiTu.ContinueInputKey 
 	
 		_CheDoDoanMotKiTu.HetLuotDoan:
@@ -735,6 +732,9 @@ _CheDoDoanMotKiTu:
 		
 		
 		_CheDoDoanMotKiTu.NguoiChoiDoanDungToanBoTu: 
+
+			jal _CapNhatDuLieuNguoiChoi
+
 			jal _CapNhatManHinhOCheDoMotKiTu			
 			#Thong bao nguoi choi da doan dung
 			la $a0,tb_nguoi_choi_doan_dung
@@ -860,12 +860,19 @@ _CheDoDoanMotWord:
 	beq $t0,0,_CheDoDoanMotWord.NguoiChoiDoanSai
 
 	_CheDoDoanMotWord.NguoiChoiDoanDung:
-		jal _CapNhatManHinhOCheDoMotWord
+
+		jal _CapNhatDuLieuNguoiChoi		
+		jal _CapNhatManHinhOCheDoMotKiTu
 	j _CheDoDoanMotWord.Exit
 	
 	_CheDoDoanMotWord.NguoiChoiDoanSai:
 
-		jal _CapNhatManHinhOCheDoMotWord		
+		
+		lw $t1,dem_so_lan_doan_sai
+		addi $t1,$t1,1
+		sw $t1,dem_so_lan_doan_sai
+
+		jal _CapNhatManHinhOCheDoMotKiTu		
 		li $v0,4
 		la $a0,tb_nguoi_choi_doan_sai
 		syscall
@@ -1158,11 +1165,10 @@ _CapNhatManHinhOCheDoMotKiTu:
 	la $a0,tb_so_lan_doan_sai_con_lai
 	li $v0,4
 	syscall
-
+	#Xuat ra so lan sai con lai cua nguoi choi
 	lw $a0,dem_so_lan_doan_sai
 	li $t0,7
 	sub $a0,$t0,$a0
-
 	li $v0,1 
 	syscall
 
@@ -1280,7 +1286,7 @@ _CapNhatManHinhOCheDoMotWord:
 	syscall
 
 	li $v0,1
-	la $a0,so_tu_da_doan
+	lw $a0,so_tu_da_doan
 	syscall
 
 	li $v0,4
@@ -2694,7 +2700,7 @@ _XuatNguoiChoiTopN:
 	
 
 	li $v0,4
-	la $a0,tb_so_tu_da_doan2
+	la $a0,tb_so_tu_da_doan_top
 	syscall
 
 	_XuatNguoiChoiTopN.DocVaXuatSoTuLoop:
