@@ -490,9 +490,7 @@ _GameLoop:
 			beq $v0,0,_GameLoop.NguoiChoiDoanSai
 
 			_GameLoop.NguoiChoiDoanDung:
-
-				jal _CapNhatDuLieuNguoiChoi
-
+			
 				#_Cap nhat trang thai cua nguoi choi	
 
 				la $a0,enter_sign
