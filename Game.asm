@@ -43,7 +43,7 @@
 	tb_nguoi_choi_doan_dung:.asciiz "\nNguoi choi doan dung"
 	d1:.asciiz "a"
 	d2:.asciiz "b"
-	debug:.asciiz "debug"
+	debug:.asciiz "\n************************\n\n         DEBUG\n\n******************************"
 	dusername:.asciiz "abcde"
 	dbuffer_fout:.asciiz "adasdas-10-2*1-15-3*asdasda-20-4*2-0-0*2-0-0*3231312-5-1*adasdsadas-10-2*1-20-4*google-10-2*abc-0-0*djklasjdkl-0-0*abc-5-1*adfdfdf-0-0*"
 	#Ket thuc *DEBUG*
@@ -128,15 +128,16 @@ _InitGame:
 	addi $sp,$sp,-32
 	sw $ra,($sp)
 	#Init
-#Doc file de thi vao buffer_fin
+	#Doc file de thi vao buffer_fin
 						
 		la $a0,file_in
 		la $a1,buffer_fin		
 		jal _DocFile		
-#Preconfigure:
+	#Preconfigure:
 
 		la $a0,buffer_fin
 		jal _SoLuongTuTrongDeThi
+		
 
 		move $a1,$v0
 		li $a2,4
@@ -162,6 +163,8 @@ _InitGame:
 		sw $0,diem
 		sw $0,so_tu_da_doan
 		sw $0, dem_so_lan_doan_sai
+
+	
 
 	
 
@@ -394,6 +397,10 @@ _GameLoop:
 	_GameLoop.Loop:
 		#Khoi tao du lieu cac mang luu du lieu khi nguoi choi lan dau tien choi
 		#hoac choi lai
+
+	
+
+
 		jal _InitGame	
 		#Kiem tra xem nguoi choi da dang nhap chua neu chua dang nhap thi tien hanh dang nhap
 		la $a0,username
@@ -411,8 +418,10 @@ _GameLoop:
 			_GameLoop.DangNhap:			
 			la $a0,username
 			jal _DangNhapGame	
-			#			
+			
 			_GameLoop.TienHanhKiemTraVaRandomTu:
+
+				
 
 			#May tien hanh cho mot tu trong dethi.txt
 			#Ham Chon de tu 1 chuoi de doc tu buffer_fin
@@ -426,6 +435,9 @@ _GameLoop:
 			la $a1,ARRTu_Da_Random
 			la $a2,word
 			jal _ChonMotTuDeDocTuBuffer
+
+		
+				
 
 			#Tien hanh kiem tra neu het tu trong de thi thi xuat thong bao het tu trong de thi
 			#Neu khong tiep tuc vong lap
@@ -1416,25 +1428,48 @@ _ChonMotTuDeDocTuBuffer:
 		
 		
 		_ChonMotTuDeDocTuBuffer.DoWhileLoop:
+			
+			#			
+				la $a0,debug
+			li $v0,4
+			syscall
+
+			li $a1,3
+			la $a0,ARRTu_Da_Random
+			jal _XuatMang
+			
+
+			#D
+			la $a0,debug
+			li $v0,4
+			syscall
+
+
 			#Goi ham random -> 0<=[int]<upper bound					
 			move $a1,$s3
 			li $v0,42
 			syscall
+
+			
 			
 			#Luu lai 
 			move $t0,$a0
-			#Ket qua random tu thu i = $a0					
-			move $a1,$a0				
-			move $a0,$s1
+			#Ket qua random tu thu i = $a0			
+			
+			
 			#Nhan vao $a0 ->dia chi mang ARRTu_Da_Random,
 			#$a1-> Vi tri cua tu can kiem tra
+						
+			move $a0,$s1
+			move $a1,$t0
 			jal _KiemTraTinhHopLeCuaTuMoi
 			
 			move $t1,$v0
 			#Neu tu chua duoc chon -> $v0 = 1 -> 
 			#thuc hien danh dau
-			
-			
+
+			beq $t1,0,_ChonMotTuDeDocTuBuffer.DoWhileLoop
+
 			beq $t1,1,_ChonMotTuDeDocTuBuffer.ThucHienDanhDau
 		
 			
@@ -1443,8 +1478,8 @@ _ChonMotTuDeDocTuBuffer:
 			beq $t1,-1,_ChonMotTuDeDocTuBuffer.HetTuTrongDeThi			
 			
 			#Neu tu duoc chon va mang chua duoc danh dau het->
-			#Tiep tuc random			
-	
+			#Tiep tuc random
+		
 		j _ChonMotTuDeDocTuBuffer.DoWhileLoop
 			
 		
@@ -1464,9 +1499,11 @@ _ChonMotTuDeDocTuBuffer:
 			li $a2,1
 			jal _SetGiatriTaiIndex
 
+		
+
 
 									
-			j _ChonMotTuDeDocTuBuffer.Restore
+		j _ChonMotTuDeDocTuBuffer.Restore
 		
 		_ChonMotTuDeDocTuBuffer.HetTuTrongDeThi:
 			li $v0,0
@@ -1514,6 +1551,8 @@ _KiemTraTinhHopLeCuaTuMoi:
 
 	move $t0,$v0
 
+
+
 	beq $t0,$0,_KiemTraTinhHopLeCuaTuMoi.HopLe
 	
 	#Kiem tra xem mang da danh dau het hay chua
@@ -1522,25 +1561,28 @@ _KiemTraTinhHopLeCuaTuMoi:
 	move $t0,$v0
 
 	beq $t0,1,_KiemTraTinhHopLeCuaTuMoi.MangDaDanhDauHet
+	
+	li $v0,0
+	j _KiemTraTinhHopLeCuaTuMoi.Restore
 
 	_KiemTraTinhHopLeCuaTuMoi.HopLe:
 		li $v0,1
-		j _KiemTraTinhHopLeCuaTuMoi.Restore
+	j _KiemTraTinhHopLeCuaTuMoi.Restore
 
 
 	_KiemTraTinhHopLeCuaTuMoi.MangDaDanhDauHet:
 		li $v0,-1
-		j _KiemTraTinhHopLeCuaTuMoi.Restore
+	j _KiemTraTinhHopLeCuaTuMoi.Restore
 
-	li $v0,0
 	
+
+
 	_KiemTraTinhHopLeCuaTuMoi.Restore:
+
 	lw $ra,($sp)
 	lw $s0,4($sp)
 	lw $s1,8($sp)	
-	lw $t0,12($sp)
-	
-	
+	lw $t0,12($sp)	
 	addi $sp,$sp,32
 	
 	jr $ra
@@ -1842,10 +1884,13 @@ _DocMotTuVaoWord:
 	move $s1,$a1
 	move $s2,$a2
 	
+	#TODO: RESET WORD
+	#word: .space 100
+
 	#Dia chi buffer_fin
 	move $t0,$s0
 	
-	#count '*' -> 42 ascii code		
+	#count /'*' -> 42 ascii code		
 	li $t1,-1
 	
 	_DocMotTuVaoWord.Loop:
@@ -1853,8 +1898,10 @@ _DocMotTuVaoWord:
 		lb $t2,($t0)
 		beq $t2,42,_DocMotTuVaoWord.TangDem
 		j _DocMotTuVaoWord.ContinueLoop
+	
 		_DocMotTuVaoWord.TangDem:
 			addi $t1,$t1,1				
+		
 		_DocMotTuVaoWord.ContinueLoop:
 			addi $t0,$t0,1
 	j _DocMotTuVaoWord.Loop
@@ -1872,9 +1919,7 @@ _DocMotTuVaoWord:
 		_DocMotTuVaoWord.ContinueLoop2:
 			addi $t0,$t0,1
 			addi $s2,$s2,1			
-		j _DocMotTuVaoWord.Loop2
-		
-		
+		j _DocMotTuVaoWord.Loop2		
 			
 	_DocMotTuVaoWord.ExitLoop2:
 	sb $0,($s2)
@@ -2420,6 +2465,7 @@ _EncodeAnswer:
 	j _EncodeAnswer.Loop
 
 	_EncodeAnswer.ExitLoop:
+	sb $0,($s0)
 
 	lw $ra,($sp)
 	lw $s0,4($sp)
