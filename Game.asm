@@ -44,12 +44,15 @@
 	d1:.asciiz "a"
 	d2:.asciiz "b"
 	debug:.asciiz "debug"
+	dusername:.asciiz "abcde"
+	dbuffer_fout:.asciiz "adasdas-10-2*1-15-3*asdasda-20-4*2-0-0*2-0-0*3231312-5-1*adasdsadas-10-2*1-20-4*google-10-2*abc-0-0*djklasjdkl-0-0*abc-5-1*adfdfdf-0-0*"
 	#Ket thuc *DEBUG*
 	asterisk_sign:.asciiz "*"
 	dash_sign:.asciiz "-"
 	enter_sign:.asciiz "\n"
 	space:.asciiz "      "
 	colon_sign:.asciiz ": "
+
 
 			#Che do nguoi choi
 			#1 -> che do 1 ki tu
@@ -73,7 +76,9 @@
 		#Bien tam thuc hien noi chuoi
 	buffer_concate_string1:.space 1000
 	buffer_concate_string2:.space 1000
-	
+	temp_1:.space 2000
+	temp_2:.space 2000	
+	temp_3:.space 2000
 	encoded_answer:.space 100
 	username:.space 50    
 	word: .space 100
@@ -100,7 +105,8 @@
 #############################################################################
 #Main:
 
-	jal _GameLoop 
+	jal _GameLoop
+
 #############################################################################
 #############################################################################
 #############################################################################
@@ -1898,10 +1904,13 @@ _GhiKetQuaRaFile:
 	sw $s1,16($sp)
 	sw $s2,20($sp)
 	sw $s3,24($sp)
+	sw $t2,28($sp)
 
 	move $s0,$a0
 	move $s1,$a1
 	move $s2,$a2
+
+	
 
 	#Thuc hien noi tu 
 	#result -> username-
@@ -1946,9 +1955,26 @@ _GhiKetQuaRaFile:
 	la $a1,buffer_concate_string2
 	la $a2,asterisk_sign
 	jal _NoiChuoi
+	
+	la $a0,file_out
+	la $a1,buffer_fout
+	jal _DocFile
 
+	#Tim vi tri xuat hien cua username trong buffer_out
+	#a0->dia chi buffer_out
+	#a1->dia chi username
+	#tra ve v0-> vi tri dau tien xuat hien username
+	#Neu khong tim thay tra ve tru 1
+	la $a0,buffer_fout
+	la $a1,username
+	jal _TimViTriNguoiChoiTrongBuffer_Fout
+	move $t2,$v0
+
+	beq $t2,-1,_GhiKetQuaRaFile.KhongTimThayUser
+	j _GhiKetQuaRaFile.TimThayUser
 	
 	
+	_GhiKetQuaRaFile.KhongTimThayUser:
 
 
 	li   $v0, 13       # system call for open file
@@ -1957,8 +1983,8 @@ _GhiKetQuaRaFile:
   	li   $a2, 0        # mode is ignored
   	syscall            # open a file (file descriptor returned in $v0)
 	#Mo file
-
 	move $t0,$v0
+
 	la $a0,buffer_concate_string1
 	jal _DemSoLuongKiTu
 	move $t1,$v0
@@ -1970,6 +1996,64 @@ _GhiKetQuaRaFile:
 	move $a2,$t1
 	syscall
 
+	j _GhiKetQuaRaFile.Continue
+
+	
+
+	_GhiKetQuaRaFile.TimThayUser:
+
+	
+
+		
+		li   $v0, 13       # system call for open file
+		la   $a0, file_out    # output file name
+		li   $a1, 1        # Open for writing (flags are 0: read, 1: write 9:write and append to existed file)
+		li   $a2, 0        # mode is ignored
+		syscall            # open a file (file descriptor returned in $v0)
+		#Mo file
+		move $t0,$v0
+
+		#Tien hanh cat chuoi thanh 3 chuoi nho
+		#a0->buffer_fout
+		#a1-> temp_1
+		#a2-> temp_2
+		#a3-> pos vi tri cua nguoi choi (khi ta tim thay) ma ta can cat chuôi
+		la $a0,buffer_fout
+		la $a1,temp_1
+		la $a2,temp_2
+		move $a3,$t2
+		jal _SplitString
+
+	
+
+
+		la $a0,temp_3
+		la $a1,temp_1
+		la $a2,buffer_concate_string1
+		jal _NoiChuoi
+
+		la $a0,temp_1
+		la $a1,temp_3
+		la $a2,temp_2
+		jal _NoiChuoi
+
+		la $a0,temp_1
+		jal _DemSoLuongKiTu
+
+		move $t2,$v0
+		
+		move $a0,$t0
+		li $v0,15
+		la $a1,temp_1
+		move $a2,$t2
+		syscall
+
+
+
+
+	
+
+	_GhiKetQuaRaFile.Continue:
 
 	#close file
 	li $v0,16
@@ -1983,6 +2067,7 @@ _GhiKetQuaRaFile:
 	lw $s1,16($sp)
 	lw $s2,20($sp)
 	lw $s3,24($sp)
+	lw $t2,28($sp)
 	addi $sp,$sp,32
 	jr $ra
 
@@ -2740,4 +2825,208 @@ _XuatNguoiChoiTopN:
 	addi $sp,$sp,32
 
 	jr $ra 
+#Tim vi tri xuat hien cua username trong buffer_out
+	#a0->dia chi buffer_out
+	#a1->dia chi username
+	#tra ve v0-> vi tri dau tien xuat hien username
+	#Neu khong tim thay tra ve tru 1
+_TimViTriNguoiChoiTrongBuffer_Fout:
+	addi $sp,$sp,-40
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+	sw $t1,12($sp)
+	sw $t0,16($sp)
+	sw $t3,20($sp)
+	sw $t2,24($sp)
+	sw $s2,28($sp)
+	sw $s3,32($sp)
+	sw $t4,24($sp)
 
+	move $s0,$a0
+	move $s1,$a1
+
+	lb $t1,($s1)
+
+	li $t4,-1
+
+	#s2 clone s0
+	#s3 clone s1
+	li $t2,0
+
+	_TimViTriNguoiChoiTrongBuffer_Fout.LoopOut:
+
+		lb $t0,($s0)
+		
+		beq $t0,$0,_TimViTriNguoiChoiTrongBuffer_Fout.ExitOutLoop
+		#Neu ki tu dau tien cua username bang voi ki tu thu n cua buffer_fout ta tien hanh chay Loop ben trong
+		beq $t1,$t0,_TimViTriNguoiChoiTrongBuffer_Fout.TimDuocKiTuDau
+		#Neu khong tep tu tim kiem
+		j _TimViTriNguoiChoiTrongBuffer_Fout.ContinueLoopOut
+			
+			_TimViTriNguoiChoiTrongBuffer_Fout.TimDuocKiTuDau:
+
+				#Tien hanh clone 
+				#Va chuyen den ki tu tiep theo
+				#Buffer_out tai index +1
+				#pos t3
+				
+				addi $s2,$s0,1
+				#username + 1 
+				addi $s3,$s1,1
+
+
+				_TimViTriNguoiChoiTrongBuffer_Fout.LoopIn:
+					lb $t1,($s3)
+				
+
+
+					lb $t0,($s2)
+					beq $t0,45,_TimViTriNguoiChoiTrongBuffer_Fout.ExitInnerLoop
+					beq $t1,$0,_TimViTriNguoiChoiTrongBuffer_Fout.ExitInnerLoop
+					bne $t0,$t1,_TimViTriNguoiChoiTrongBuffer_Fout.DieuKienSai				
+					
+					j _TimViTriNguoiChoiTrongBuffer_Fout.ContinueLoopIn
+					
+					_TimViTriNguoiChoiTrongBuffer_Fout.DieuKienSai:
+						li $t4,-1
+						j _TimViTriNguoiChoiTrongBuffer_Fout.ExitInnerLoop
+					
+					
+					_TimViTriNguoiChoiTrongBuffer_Fout.ContinueLoopIn:
+					
+					#Doi den ki tu tiep theo
+					move $t4,$t2					
+					addi $s3,$s3,1
+					addi $s2,$s2,1					
+				j _TimViTriNguoiChoiTrongBuffer_Fout.LoopIn
+
+				_TimViTriNguoiChoiTrongBuffer_Fout.ExitInnerLoop:
+
+					lb $t0,($s2)
+					
+
+					#Check xem loop chay den ki tu - khong
+					beq $t0,45,_TimViTriNguoiChoiTrongBuffer_Fout.PassCheck1
+					j _TimViTriNguoiChoiTrongBuffer_Fout.ResetPos
+					_TimViTriNguoiChoiTrongBuffer_Fout.PassCheck1:
+
+
+					
+						#T3 do dai chuoi da thuc hien loop
+						sub $t3,$s2,$s0
+						move $a0,$s1
+						jal _DemSoLuongKiTu
+					#Check xem so luong ki tu trong chuoi user co bang voi so luong ki tu ta da
+					# loop khong 
+					beq $v0,$t3 _TimViTriNguoiChoiTrongBuffer_Fout.PassCheck2					
+					j _TimViTriNguoiChoiTrongBuffer_Fout.ResetPos
+
+				_TimViTriNguoiChoiTrongBuffer_Fout.PassCheck2:
+			
+				j _TimViTriNguoiChoiTrongBuffer_Fout.ExitOutLoop
+					
+
+				_TimViTriNguoiChoiTrongBuffer_Fout.ResetPos:
+					li $t4,-1
+
+		
+
+		 _TimViTriNguoiChoiTrongBuffer_Fout.ContinueLoopOut:
+		
+		addi $t2,$t2,1
+		addi $s0,$s0,1		
+
+	j _TimViTriNguoiChoiTrongBuffer_Fout.LoopOut
+
+	_TimViTriNguoiChoiTrongBuffer_Fout.ExitOutLoop:
+
+	move $v0,$t4
+
+
+
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+	lw $t1,12($sp)
+	lw $t0,16($sp)
+	lw $t3,20($sp)
+	lw $t2,24($sp)
+	lw $s2,28($sp)
+	lw $s3,32($sp)
+	lw $t4,24($sp)
+	addi $sp,$sp,40
+	jr $ra
+#Tien hanh cat chuoi thanh 3 chuoi nho
+	#a0->buffer_fout
+	#a1-> temp_1
+	#a2-> temp_2
+	#a3-> pos vi tri cua nguoi choi (khi ta tim thay) ma ta can cat chuôi
+_SplitString:
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+	sw $s2,12($sp)
+	sw $s3,16($sp)
+	sw $t0,20($sp)
+	sw $t1,24($sp)
+	sw $t2,28($sp)
+	
+	move $s0,$a0
+	move $s1,$a1
+	move $s2,$a2
+	move $s3,$a3
+
+	#Dem so tu 
+	li $t0,0
+
+	_SplitString.Loop1:
+
+		lb $t1,($s0)
+		beq $t0,$s3,_SplitString.ExitLoop1
+		sb $t1,($s1)
+	#Tang bien dem dong thoi tang dia chi cua chuoi nguon
+	addi $s0,$s0,1
+	addi $t0,$t0,1
+	addi $s1,$s1,1
+	j _SplitString.Loop1
+	_SplitString.ExitLoop1:
+	sb $0,($s1)
+
+	_SplitString.Loop2:
+		lb $t1,($s0)
+		
+
+
+		beq $t1,42,_SplitString.ExitLoop2
+		addi $s0,$s0,1
+	j _SplitString.Loop2
+	_SplitString.ExitLoop2:
+	addi $s0,$s0,1
+
+	_SplitString.Loop3:
+		lb $t1,($s0)
+		beq $t1,$0,_SplitString.ExitLoop3
+		
+		sb $t1,($s2)
+		
+		
+		addi $s0,$s0,1
+		addi $s2,$s2,1
+	j _SplitString.Loop3
+	_SplitString.ExitLoop3:
+	sb $0,($s2)
+
+
+
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+	lw $s2,12($sp)
+	lw $s3,16($sp)
+	lw $t0,20($sp)
+	lw $t1,24($sp)
+	lw $t2,28($sp)
+	addi $sp,$sp,32
+	jr $ra
