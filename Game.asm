@@ -25,9 +25,11 @@
 	tb_top:.asciiz "\nTop "
 	tb_nguoi_choi_doan_sai:.asciiz "\nBan da doan sai roi"
 	tb_che_do_mot_ki_tu:.asciiz "\nBan dang o che do doan 1 ki tu"
-	tb_doan_tu_can_doan: .asciiz "\nTu can doan cua ban co dang: "
+	tb_dang_tu_can_doan: .asciiz "\nTu can doan cua ban co dang: "
 	tb_che_do_word: .asciiz "\nBang dang o che do doan 1 word"
 	tb_dap_an_la: .asciiz "\nDap an la: "
+	tb_username_la:.asciiz "\nTen nguoi choi : "
+	tb_line:.asciiz "\n=====================================############=========================================\n"
 
 	#*****Ket thuc khu vuc khai bao thong bao
 	#*****String ung voi so lan nguoi choi doan sai
@@ -44,8 +46,8 @@
 	d1:.asciiz "a"
 	d2:.asciiz "b"
 	debug:.asciiz "\n************************\n\n         DEBUG\n\n******************************"
-	dusername:.asciiz "abcde"
-	dbuffer_fout:.asciiz "adasdas-10-2*1-15-3*asdasda-20-4*2-0-0*2-0-0*3231312-5-1*adasdsadas-10-2*1-20-4*google-10-2*abc-0-0*djklasjdkl-0-0*abc-5-1*adfdfdf-0-0*"
+	dusername:.asciiz "google"
+	dbuffer_fout:.asciiz "dasdas-9-2*1-15-3*asdasda-20-4*2-0-0*2-0-0*3231312-5-1*adasdsadas-10-2*1-20-4*google-5-1*abc-0-0*djklasjdkl-0-0*abc-5-1*adfdfdf-0-0*abc-0-0*a-5-1*dsdds-0-0*ds-9-2*a-9-2*a-9-2*ere-9-2*a-9-2*f-9-2*1-9-2*1-9-2*1-13-3*1-9-2*1-9-2*1-13-3*a-9-2*1-9-2*1-9-2*1-9-2*1-9-2*1-9-2*1-9-2*a-9-2*aq-15-3*abc-15-3*abc-4-1*"
 	#Ket thuc *DEBUG*
 	asterisk_sign:.asciiz "*"
 	dash_sign:.asciiz "-"
@@ -243,6 +245,7 @@ _DangNhapGame:
 	_DangNhapGame.ExitEdit:
 		sb $0,($s0)
 
+
 	lw $ra,($sp)
 	lw $s0,4($sp)
 	lw $t0,8($sp)
@@ -399,7 +402,9 @@ _GameLoop:
 		#hoac choi lai
 
 	
-
+		la $a0,tb_line
+		li $v0,4
+		syscall
 
 		jal _InitGame	
 		#Kiem tra xem nguoi choi da dang nhap chua neu chua dang nhap thi tien hanh dang nhap
@@ -448,7 +453,44 @@ _GameLoop:
 					la $a0,tb_het_tu
 					li $v0,4
 					syscall
-					
+					#ADD
+						la $a0,enter_sign
+						li $v0,4
+						syscall
+
+						li $v0,4
+						la $a0,tb_username_la
+						syscall
+
+						la $a0,username
+						li $v0,4
+						syscall
+
+						la $a0,enter_sign
+						li $v0,4
+						syscall
+
+
+						la $a0,tb_diem_nguoi_choi
+						li $v0,4
+						syscall
+
+						lw $a0,diem
+						li $v0,1
+						syscall
+
+						la $a0,enter_sign
+						li $v0,4
+						syscall
+
+						la $a0,tb_so_tu_da_doan
+						li $v0,4
+						syscall
+
+						lw $a0,so_tu_da_doan
+						li $v0,1
+						syscall
+					#EADD
 					#Ham ghi ket qua xuong file
 					#a0-> dia chi username
 					#a1-> diem nguoi choi 
@@ -471,6 +513,13 @@ _GameLoop:
 			#######################################################################
 			#Neu con tu trong de thi				
 			_GameLoop.ContinueLoop1:
+		
+		
+			li $v0,4
+			la $a0,tb_line
+			syscall
+			
+			
 			jal _YeuCauNguoiChoiChonCheDoChoi		
 
 			beq $v0,1,_GameLoop.CheDoDoanMotKiTu
@@ -515,7 +564,9 @@ _GameLoop:
 				li $v0,4
 				syscall
 
-
+				li $v0,4
+				la $a0,tb_username_la
+				syscall
 
 				la $a0,username
 				li $v0,4
@@ -552,6 +603,7 @@ _GameLoop:
 			j _GameLoop.TienHanhKiemTraVaRandomTu
 			
 			_GameLoop.NguoiChoiDoanSai:
+
 
 				la $a0,username
 				la $a1,diem
@@ -673,7 +725,7 @@ _CheDoDoanMotKiTu:
 	#Xuat thong bao tu can doan co dang
 
 	li $v0,4
-	la $a0,tb_doan_tu_can_doan
+	la $a0,tb_dang_tu_can_doan
 	syscall
 
 	#Xuat encoded_answer ra man hinh
@@ -725,7 +777,7 @@ _CheDoDoanMotKiTu:
 
 	_CheDoDoanMotKiTu.NguoiChoiDoanDung: #Nguoi choi doan dung duoc 1 ki tu
 		
-		#Kiem tra xem nguoi choi da doan het tu chua
+		
 		
 		la $a0,word
 		la $a1,encoded_answer		
@@ -737,8 +789,7 @@ _CheDoDoanMotKiTu:
 		la $a0,enter_sign
 		syscall
 
-
-		
+		#Kiem tra xem nguoi choi da doan het tu chua		
 		beq $t0,1,_CheDoDoanMotKiTu.NguoiChoiDoanDungToanBoTu #Nguoi choi doan dung toan bo tu
 		
 		#Nguoc lai nguoi choi chua doan duoc het ki tu trong chuoi
@@ -831,8 +882,13 @@ _CheDoDoanMotWord:
 	syscall	
 
 	li $t0,0
-
+	#TODO: TBDANG
 	#Xuat encoded_answer ra man hinh
+
+	li $v0,4
+	la $a0,tb_dang_tu_can_doan
+	syscall
+
 	li $v0,4
 	la $a0,encoded_answer
 	syscall
@@ -1142,9 +1198,7 @@ _YeuCauNguoiChoiLuaChonChoiTiepHayThoat:
 	#Diem hien tai la bao nhieu 
 	#So tu da doan duoc	
 	#So lan sai con lai doi voi che do 1 ki tu
-_CapNhatTrangThaiNguoiChoi:
 
-    #Cap nhat man hinh o che do 1 ki tu
 _CapNhatManHinhOCheDoMotKiTu:
 	addi $sp,$sp,-32
 	sw $ra,($sp)
@@ -1429,20 +1483,7 @@ _ChonMotTuDeDocTuBuffer:
 		
 		_ChonMotTuDeDocTuBuffer.DoWhileLoop:
 			
-			#			
-				la $a0,debug
-			li $v0,4
-			syscall
-
-			li $a1,3
-			la $a0,ARRTu_Da_Random
-			jal _XuatMang
 			
-
-			#D
-			la $a0,debug
-			li $v0,4
-			syscall
 
 
 			#Goi ham random -> 0<=[int]<upper bound					
@@ -2047,7 +2088,7 @@ _GhiKetQuaRaFile:
 
 	_GhiKetQuaRaFile.TimThayUser:
 
-	
+		
 
 		
 		li   $v0, 13       # system call for open file
@@ -2448,10 +2489,7 @@ _EncodeAnswer:
 	move $a0,$s1
 	jal _DemSoLuongKiTu
 	move $t2,$v0
-	
-	move $a0,$v0
-	li $v0,1
-	syscall
+
 
 	#ma ascii *
 	li $t0,0
@@ -2477,6 +2515,9 @@ _EncodeAnswer:
 	
 	jr $ra
 
+
+
+#UNUSED
 #Tang dem
 	#a0 -> dia chi bien dem
 _TangDem:
@@ -2887,7 +2928,7 @@ _TimViTriNguoiChoiTrongBuffer_Fout:
 	sw $t2,24($sp)
 	sw $s2,28($sp)
 	sw $s3,32($sp)
-	sw $t4,24($sp)
+	sw $t4,36($sp)
 
 	move $s0,$a0
 	move $s1,$a1
@@ -2920,13 +2961,10 @@ _TimViTriNguoiChoiTrongBuffer_Fout:
 				addi $s2,$s0,1
 				#username + 1 
 				addi $s3,$s1,1
-
-
+				
 				_TimViTriNguoiChoiTrongBuffer_Fout.LoopIn:
 					lb $t1,($s3)
-				
-
-
+					
 					lb $t0,($s2)
 					beq $t0,45,_TimViTriNguoiChoiTrongBuffer_Fout.ExitInnerLoop
 					beq $t1,$0,_TimViTriNguoiChoiTrongBuffer_Fout.ExitInnerLoop
@@ -2955,10 +2993,7 @@ _TimViTriNguoiChoiTrongBuffer_Fout:
 					#Check xem loop chay den ki tu - khong
 					beq $t0,45,_TimViTriNguoiChoiTrongBuffer_Fout.PassCheck1
 					j _TimViTriNguoiChoiTrongBuffer_Fout.ResetPos
-					_TimViTriNguoiChoiTrongBuffer_Fout.PassCheck1:
-
-
-					
+					_TimViTriNguoiChoiTrongBuffer_Fout.PassCheck1:					
 						#T3 do dai chuoi da thuc hien loop
 						sub $t3,$s2,$s0
 						move $a0,$s1
@@ -3000,7 +3035,7 @@ _TimViTriNguoiChoiTrongBuffer_Fout:
 	lw $t2,24($sp)
 	lw $s2,28($sp)
 	lw $s3,32($sp)
-	lw $t4,24($sp)
+	lw $t4,36($sp)
 	addi $sp,$sp,40
 	jr $ra
 #Tien hanh cat chuoi thanh 3 chuoi nho
