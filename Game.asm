@@ -764,7 +764,7 @@ _CheDoDoanMotKiTu:
 		addi $t0,$t0,1
 		sw $t0,dem_so_lan_doan_sai
 
-		jal _CapNhatManHinhOCheDoMotKiTu
+		jal _CapNhatManHinhGame
 		lw $t0,dem_so_lan_doan_sai
 		bge $t0,7,_CheDoDoanMotKiTu.HetLuotDoan
 		j _CheDoDoanMotKiTu.ContinueInputKey 
@@ -793,7 +793,7 @@ _CheDoDoanMotKiTu:
 		beq $t0,1,_CheDoDoanMotKiTu.NguoiChoiDoanDungToanBoTu #Nguoi choi doan dung toan bo tu
 		
 		#Nguoc lai nguoi choi chua doan duoc het ki tu trong chuoi
-		jal _CapNhatManHinhOCheDoMotKiTu
+		jal _CapNhatManHinhGame
 		
 		j _CheDoDoanMotKiTu.ContinueInputKey
 		
@@ -802,7 +802,7 @@ _CheDoDoanMotKiTu:
 
 			jal _CapNhatDuLieuNguoiChoi
 
-			jal _CapNhatManHinhOCheDoMotKiTu			
+			jal _CapNhatManHinhGame			
 			#Thong bao nguoi choi da doan dung
 			la $a0,tb_nguoi_choi_doan_dung
 			li $v0,4
@@ -820,7 +820,7 @@ _CheDoDoanMotKiTu:
 		syscall
 
 		#Xuat ra encoded 
-		la $a0,encoded_answer
+		la $a0,word
 		li $v0,4
 		syscall
 		
@@ -934,17 +934,33 @@ _CheDoDoanMotWord:
 	_CheDoDoanMotWord.NguoiChoiDoanDung:
 
 		jal _CapNhatDuLieuNguoiChoi		
-		jal _CapNhatManHinhOCheDoMotKiTu
+		jal _CapNhatManHinhGame
 	j _CheDoDoanMotWord.Exit
 	
 	_CheDoDoanMotWord.NguoiChoiDoanSai:
 
 		
-		lw $t1,dem_so_lan_doan_sai
-		addi $t1,$t1,1
-		sw $t1,dem_so_lan_doan_sai
+		#lw $t1,dem_so_lan_doan_sai
+		#addi $t1,$t1,1
+		#sw $t1,dem_so_lan_doan_sai
+		
+			#Xuat thong bao dap an la: 
+		la $a0,tb_dap_an_la
+		li $v0,4
+		syscall
 
-		jal _CapNhatManHinhOCheDoMotKiTu		
+		#Xuat ra encoded 
+		la $a0,word
+		li $v0,4
+		syscall
+
+		li $v0,4
+		la $a0,enter_sign
+		syscall
+
+
+
+		jal _CapNhatManHinhGame		
 		li $v0,4
 		la $a0,tb_nguoi_choi_doan_sai
 		syscall
@@ -1199,7 +1215,7 @@ _YeuCauNguoiChoiLuaChonChoiTiepHayThoat:
 	#So tu da doan duoc	
 	#So lan sai con lai doi voi che do 1 ki tu
 
-_CapNhatManHinhOCheDoMotKiTu:
+_CapNhatManHinhGame:
 	addi $sp,$sp,-32
 	sw $ra,($sp)
 	sw $t0,4($sp)
@@ -1255,64 +1271,64 @@ _CapNhatManHinhOCheDoMotKiTu:
 	lw $t0,dem_so_lan_doan_sai
 	#Switch case nguoi choi sai n ki tu xuat ra thong bao tuong ung
 
-	beq $t0,1,_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai1Lan
-	beq $t0,2,_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai2Lan
-	beq $t0,3,_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai3Lan
-	beq $t0,4,_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai4Lan
-	beq $t0,5,_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai5Lan
-	beq $t0,6,_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai6Lan
-	beq $t0,7,_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai7Lan
-	bge $t0,8,_CapNhatManHinhOCheDoMotKiTu.NguoiChoiDaThua
+	beq $t0,1,_CapNhatManHinhGame.NguoiChoiSai1Lan
+	beq $t0,2,_CapNhatManHinhGame.NguoiChoiSai2Lan
+	beq $t0,3,_CapNhatManHinhGame.NguoiChoiSai3Lan
+	beq $t0,4,_CapNhatManHinhGame.NguoiChoiSai4Lan
+	beq $t0,5,_CapNhatManHinhGame.NguoiChoiSai5Lan
+	beq $t0,6,_CapNhatManHinhGame.NguoiChoiSai6Lan
+	beq $t0,7,_CapNhatManHinhGame.NguoiChoiSai7Lan
+	bge $t0,8,_CapNhatManHinhGame.NguoiChoiDaThua
 	#Neu nguoi choi khong sai lan nao
 
-	j _CapNhatManHinhOCheDoMotKiTu.Continue
+	j _CapNhatManHinhGame.Continue
 
 	
 
 	#Cap nhat hinh phat danh cho nguoi choi 
-	_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai1Lan:
+	_CapNhatManHinhGame.NguoiChoiSai1Lan:
 		li $v0,4
 		la $a0,doan_sai_lan_1
 		syscall
-	j _CapNhatManHinhOCheDoMotKiTu.Continue
+	j _CapNhatManHinhGame.Continue
 	
-	_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai2Lan:
+	_CapNhatManHinhGame.NguoiChoiSai2Lan:
 		li $v0,4
 		la $a0,doan_sai_lan_2
 		syscall
-	j _CapNhatManHinhOCheDoMotKiTu.Continue
+	j _CapNhatManHinhGame.Continue
 	
-	_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai3Lan:
+	_CapNhatManHinhGame.NguoiChoiSai3Lan:
 		li $v0,4
 		la $a0,doan_sai_lan_3
 		syscall
-	j _CapNhatManHinhOCheDoMotKiTu.Continue
+	j _CapNhatManHinhGame.Continue
 
-	_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai4Lan:
+	_CapNhatManHinhGame.NguoiChoiSai4Lan:
 		li $v0,4
 		la $a0,doan_sai_lan_4
 		syscall
-	j _CapNhatManHinhOCheDoMotKiTu.Continue
+	j _CapNhatManHinhGame.Continue
 
-	_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai5Lan:
+	_CapNhatManHinhGame.NguoiChoiSai5Lan:
 		li $v0,4
 		la $a0,doan_sai_lan_5
 		syscall
-	j _CapNhatManHinhOCheDoMotKiTu.Continue
+	j _CapNhatManHinhGame.Continue
 
-	_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai6Lan:
+	_CapNhatManHinhGame.NguoiChoiSai6Lan:
 		li $v0,4
 		la $a0,doan_sai_lan_6
 		syscall
-	j _CapNhatManHinhOCheDoMotKiTu.Continue
+	j _CapNhatManHinhGame.Continue
 
-	_CapNhatManHinhOCheDoMotKiTu.NguoiChoiSai7Lan:
+	_CapNhatManHinhGame.NguoiChoiSai7Lan:
 		li $v0,4
 		la $a0,doan_sai_lan_7
 		syscall
-	j _CapNhatManHinhOCheDoMotKiTu.Continue
+	j _CapNhatManHinhGame.Continue
 
-	_CapNhatManHinhOCheDoMotKiTu.NguoiChoiDaThua:
+	_CapNhatManHinhGame.NguoiChoiDaThua:
 		li $v0,4
 		la $a0,doan_sai_lan_7
 		syscall
@@ -1324,14 +1340,14 @@ _CapNhatManHinhOCheDoMotKiTu:
 
 
 
-	_CapNhatManHinhOCheDoMotKiTu.Continue:
+	_CapNhatManHinhGame.Continue:
 	
 	lw $ra,($sp)
 	lw $t0,4($sp)
 	addi $sp,$sp,32
 	
 	jr $ra
-
+#UNUSED
 	#Cap nhat man hinh o che do 1 word
 _CapNhatManHinhOCheDoMotWord:
 
@@ -1539,6 +1555,8 @@ _ChonMotTuDeDocTuBuffer:
 			move $a1,$t0
 			li $a2,1
 			jal _SetGiatriTaiIndex
+			
+			li $v0,1
 
 		
 
@@ -2768,7 +2786,6 @@ _ConvertIntToString:
 	#a0-> dia chi buffer_out
 	#a1-> dia chi ARRIndex_Nguoi_Choi
 	#a2-> index
-
 _XuatNguoiChoiTopN:
 
 	addi $sp,$sp,-32
