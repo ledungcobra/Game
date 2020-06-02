@@ -60,13 +60,15 @@
 			#1 -> che do 1 ki tu
 			#2 -> che do 1 word
 	
-	che_do:.byte 0
+
 		#Ki tu nguoi choi nhap vao khi choi che do 1 ki tu
 	ki_tu_nhap_vao:.byte 0
 		#Bien dem so lan nguoi choi doan sai
 	dem_so_lan_doan_sai:.word 5
 		#Luu lai sao diem cua nguoi choi
 	diem: .word 10
+		#Chế độ chơi của ngư�?i chơi
+	che_do:.word 0
 		#Luu lai so tu nguoi choi doan duoc
 	so_tu_da_doan:.word 20
 	
@@ -592,7 +594,7 @@ _GameLoop:
 				la $a0,tb_so_tu_da_doan
 				li $v0,4
 				syscall
-
+				
 				lw $a0,so_tu_da_doan
 				li $v0,1
 				syscall
@@ -676,7 +678,9 @@ _YeuCauNguoiChoiChonCheDoChoi:
 	j _YeuCauNguoiChoiChonCheDoChoi.NhapLai
 
 	_YeuCauNguoiChoiChonCheDoChoi.Return:
-		addi $v0,$t0,-48	
+		addi $v0,$t0,-48
+		sw $v0,che_do
+
 	
 	lw $ra,($sp)
 	lw $t0,4($sp)
@@ -882,7 +886,7 @@ _CheDoDoanMotWord:
 	syscall	
 
 	li $t0,0
-	#TODO: TBDANG
+	
 	#Xuat encoded_answer ra man hinh
 
 	li $v0,4
@@ -926,14 +930,17 @@ _CheDoDoanMotWord:
 	jal _AreSameStrings
 	#ket qua tra ve ham tra ve dong nam trong $v0
 
+
 	move $t0,$v0
 
 	beq $t0,1,_CheDoDoanMotWord.NguoiChoiDoanDung
 	beq $t0,0,_CheDoDoanMotWord.NguoiChoiDoanSai
 
 	_CheDoDoanMotWord.NguoiChoiDoanDung:
-
+		
+	
 		jal _CapNhatDuLieuNguoiChoi		
+	
 		jal _CapNhatManHinhGame
 	j _CheDoDoanMotWord.Exit
 	
@@ -1219,6 +1226,7 @@ _CapNhatManHinhGame:
 	addi $sp,$sp,-32
 	sw $ra,($sp)
 	sw $t0,4($sp)
+	sw $t1,8($sp)
 	
 
 	#Cap nhat diem cua nguoi choi hien tai, so tu mà nguoi choi da doan duoc
@@ -1248,6 +1256,9 @@ _CapNhatManHinhGame:
 	la $a0,enter_sign
 	syscall
 
+	lw $t1,che_do
+	beq $t1,2,_CapNhatManHinhGame.Continue 
+	
 	la $a0,tb_so_lan_doan_sai_con_lai
 	li $v0,4
 	syscall
@@ -1344,8 +1355,8 @@ _CapNhatManHinhGame:
 	
 	lw $ra,($sp)
 	lw $t0,4($sp)
-	addi $sp,$sp,32
-	
+	lw $t1,8($sp)
+	addi $sp,$sp,32	
 	jr $ra
 #UNUSED
 	#Cap nhat man hinh o che do 1 word
@@ -1397,12 +1408,6 @@ _CapNhatDuLieuNguoiChoi:
 	lw $t0,so_tu_da_doan
 	addi $t0,$t0,1
 	sw $t0,so_tu_da_doan
-
-
-
-	li $v0,1
-	move $a0,$t0
-	syscall
 
 	
 	#diem+=sotutrongword
