@@ -29,6 +29,7 @@
 	tb_che_do_word: .asciiz "\nBang dang o che do doan 1 word"
 	tb_dap_an_la: .asciiz "\nDap an la: "
 	tb_username_la:.asciiz "\nTen nguoi choi : "
+	tb_nguoi_choi_doan_dung:.asciiz "\nNguoi choi doan dung"
 	tb_line:.asciiz "\n=====================================############=========================================\n"
 
 	#*****Ket thuc khu vuc khai bao thong bao
@@ -40,15 +41,7 @@
 	doan_sai_lan_5:.asciiz "\n_____________\n|/         | \n|          O\n|         /|\\\n|\n|\n|\n|\n|\n|\n|"
 	doan_sai_lan_6:.asciiz "\n_____________\n|/         | \n|          O\n|         /|\\\n|         /\n|\n|\n|\n|\n|\n|"
 	doan_sai_lan_7:.asciiz "\n_____________\n|/         | \n|          O\n|         /|\\\n|         / \\\n|\n|\n|\n|\n|\n|"
-	#***** KetThuc 	
-	#Khu vuc khai bao string cho **DEBUG**
-	tb_nguoi_choi_doan_dung:.asciiz "\nNguoi choi doan dung"
-	d1:.asciiz "a"
-	d2:.asciiz "b"
-	debug:.asciiz "\n************************\n\n         DEBUG\n\n******************************"
-	dusername:.asciiz "google"
-	dbuffer_fout:.asciiz "dasdas-9-2*1-15-3*asdasda-20-4*2-0-0*2-0-0*3231312-5-1*adasdsadas-10-2*1-20-4*google-5-1*abc-0-0*djklasjdkl-0-0*abc-5-1*adfdfdf-0-0*abc-0-0*a-5-1*dsdds-0-0*ds-9-2*a-9-2*a-9-2*ere-9-2*a-9-2*f-9-2*1-9-2*1-9-2*1-13-3*1-9-2*1-9-2*1-13-3*a-9-2*1-9-2*1-9-2*1-9-2*1-9-2*1-9-2*1-9-2*a-9-2*aq-15-3*abc-15-3*abc-4-1*"
-	#Ket thuc *DEBUG*
+	#***** KetThuc 																																																											
 	asterisk_sign:.asciiz "*"
 	dash_sign:.asciiz "-"
 	enter_sign:.asciiz "\n"
